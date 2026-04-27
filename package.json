@@ -8,6 +8,7 @@
     "start": "nodemon src/server.js",
     "lint": "eslint src --ext .js",
     "format": "prettier --write .",
+    "build": "echo build done",
     "seed": "node src/scripts/seed.js",
     "test:admin-apis": "node TEST_ADMIN_DASHBOARD_APIS.js",
     "test:offers-apis": "node TEST_ADMIN_OFFERS_APIS.js",
