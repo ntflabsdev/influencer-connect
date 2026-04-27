@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "NODE_ENV=development nodemon src/server.js",
-    "start": "nodemon src/server.js",
+    "start": "node src/server.js",
     "lint": "eslint src --ext .js",
     "format": "prettier --write .",
     "build": "echo build done",
