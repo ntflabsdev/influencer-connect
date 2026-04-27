@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+  @apply bg-gradient-to-br from-slate-100 via-slate-50 to-white text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+input,
+textarea,
+select {
+  @apply text-slate-900 placeholder:text-slate-500;
+}
+
+a {
+  @apply text-indigo-600 hover:text-indigo-700 dark:text-indigo-300 dark:hover:text-indigo-200;
+}
+
+.card {
+  @apply bg-white/80 backdrop-blur rounded-xl shadow-md p-5 border border-slate-200/80 dark:bg-slate-900/70 dark:border-slate-800 dark:shadow-black/20;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition;
+}
+
+.btn-primary {
+  @apply btn bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-200 hover:from-indigo-700 hover:to-indigo-600 dark:from-indigo-500 dark:to-indigo-400 dark:shadow-indigo-900/40;
+}
+
+.btn-ghost {
+  @apply btn text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800;
+}
+
+.badge {
+  @apply inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100 dark:bg-indigo-500/20 dark:text-indigo-200 dark:border-indigo-500/40;
+}
+
+.toast-container {
+  @apply fixed top-4 right-4 space-y-3 z-50;
+}
+
+.toast {
+  @apply rounded-lg px-4 py-3 text-sm font-medium shadow-lg border-2 transform transition-all duration-300 ease-in-out;
+  animation: slideInRight 0.3s ease-out;
+}
+
+.toast-success {
+  @apply bg-green-500 border-green-600 text-white shadow-green-200 dark:bg-green-600 dark:border-green-700 dark:shadow-green-900/30;
+}
+
+.toast-error {
+  @apply bg-red-500 border-red-600 text-white shadow-red-200 dark:bg-red-600 dark:border-red-700 dark:shadow-red-900/30;
+}
+
+.toast-info {
+  @apply bg-blue-500 border-blue-600 text-white shadow-blue-200 dark:bg-blue-600 dark:border-blue-700 dark:shadow-blue-900/30;
+}
+
+.toast-warning {
+  @apply bg-yellow-500 border-yellow-600 text-white shadow-yellow-200 dark:bg-yellow-600 dark:border-yellow-700 dark:shadow-yellow-900/30;
+}
+
+/* Toast slide in animation */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Toast hover effect */
+.toast:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Hide scrollbar while keeping functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(148 163 184) transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgb(148 163 184);
+  border-radius: 3px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgb(100 116 139);
+}
+
+/* Dark mode scrollbar */
+.dark .sidebar-scroll {
+  scrollbar-color: rgb(71 85 105) transparent;
+}
+
+.dark .sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgb(71 85 105);
+}
+
+.dark .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgb(51 65 85);
+}

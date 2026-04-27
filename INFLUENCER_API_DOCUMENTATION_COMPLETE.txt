@@ -1,0 +1,1119 @@
+============================================================
+INFLUENCER API COMPLETE DOCUMENTATION
+INFLUENCER CONNECT PLATFORM
+============================================================
+
+BASE URL: http://localhost:5500/api
+AUTHENTICATION: Bearer Token Required (except public endpoints)
+ROLE: influencer
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+1. AUTHENTICATION APIs
+2. PROFILE MANAGEMENT APIs
+3. SOCIAL MEDIA CONNECTION APIs
+4. OFFERS & COLLABORATION APIs
+5. NOTIFICATION PREFERENCES APIs
+6. PRIVACY SETTINGS APIs
+7. SESSION MANAGEMENT APIs
+8. GDPR COMPLIANCE APIs
+9. PUBLIC APIs
+10. ERROR RESPONSES
+11. DATA FORMATS
+
+================================================================================
+1. AUTHENTICATION APIs
+================================================================================
+
+1.1 INFLUENCER REGISTRATION
+---------------------------
+Endpoint: POST /auth/influencer/register
+Description: Register new influencer account
+
+Request Body:
+{
+  "email": "john@example.com",
+  "password": "password123",
+  "confirmPassword": "password123",
+  "name": "John Doe",
+  "phone": "+34612345678"
+}
+
+Response (201):
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "refresh_token_here",
+  "user": {
+    "id": "507f1f77bcf86cd799439011",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role": "influencer",
+    "status": "adminpending",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+
+1.2 INFLUENCER LOGIN
+--------------------
+Endpoint: POST /auth/influencer/login
+Description: Login with email and password
+
+Request Body:
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+
+Response (200):
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "refresh_token_here",
+  "user": {
+    "id": "507f1f77bcf86cd799439011",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role": "influencer",
+    "status": "active",
+    "username": "john_doe",
+    "verificationStatus": {
+      "emailVerified": false,
+      "phoneVerified": false,
+      "socialVerified": false,
+      "identityVerified": false
+    },
+    "lastActive": "2024-01-01T10:00:00.000Z"
+  }
+}
+
+1.3 REFRESH TOKEN
+-----------------
+Endpoint: POST /auth/refresh
+Description: Get new access token using refresh token
+
+Request Body:
+{
+  "refreshToken": "your_refresh_token_here"
+}
+
+Response (200):
+{
+  "accessToken": "new_access_token",
+  "refreshToken": "new_refresh_token"
+}
+
+1.4 LOGOUT
+----------
+Endpoint: POST /auth/logout
+Description: Logout user and invalidate tokens
+
+Request Body:
+{
+  "refreshToken": "your_refresh_token_here"
+}
+
+Response (200):
+{
+  "message": "Logged out successfully"
+}
+
+================================================================================
+2. PROFILE MANAGEMENT APIs
+================================================================================
+
+2.1 UPDATE PROFILE
+------------------
+Endpoint: PUT /influencer/profile
+Auth: Required (Influencer Bearer Token)
+
+Request Body (All fields optional):
+{
+  "profileImage": "https://example.com/avatar.jpg",
+  "basicInfo": {
+    "fullName": "John Doe",
+    "username": "john_doe",
+    "bio": "Fashion and lifestyle content creator specializing in sustainable fashion"
+  },
+  "contentCategories": ["Fashion", "Lifestyle", "Sustainability"],
+  "contactInfo": {
+    "email": "john@example.com",
+    "phone": "+34612345678",
+    "location": "Madrid, Spain",
+    "website": "https://johndoe.com",
+    "secondaryEmail": "business@john.com",
+    "instagram": "@john_doe_official",
+    "tiktok": "@john_doe"
+  },
+  "location": {
+    "city": "Madrid",
+    "country": "Spain",
+    "state": "Madrid",
+    "coordinates": [2.1734, 41.3851]
+  }
+}
+
+Validation Rules:
+- username: 3-30 chars, alphanumeric + underscore only, unique
+- bio: Maximum 500 characters
+- contentCategories: Array of strings
+- contactInfo.location: String (for display)
+- location.coordinates: [longitude, latitude] array
+
+Response (200):
+{
+  "message": "Profile updated successfully",
+  "user": {
+    "id": "507f1f77bcf86cd799439011",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role": "influencer",
+    "profileImage": "https://example.com/avatar.jpg",
+    "basicInfo": {
+      "fullName": "John Doe",
+      "username": "john_doe",
+      "bio": "Fashion and lifestyle content creator..."
+    },
+    "contentCategories": ["Fashion", "Lifestyle", "Sustainability"],
+    "contactInfo": {
+      "email": "john@example.com",
+      "phone": "+34612345678",
+      "location": "Madrid, Spain",
+      "website": "https://johndoe.com",
+      "secondaryEmail": "business@john.com",
+      "instagram": "@john_doe_official",
+      "tiktok": "@john_doe"
+    },
+    "location": {
+      "city": "Madrid",
+      "country": "Spain",
+      "state": "Madrid",
+      "coordinates": [2.1734, 41.3851]
+    },
+    "statistics": {
+      "totalFollowers": 5000,
+      "totalEngagement": 25000,
+      "averageEngagementRate": 5.0,
+      "completedCollaborations": 10,
+      "activeCollaborations": 2,
+      "totalEarnings": 5000,
+      "rating": 4.5,
+      "ratingCount": 20
+    },
+    "portfolio": 15,
+    "status": "active",
+    "isVerified": true,
+    "verificationStatus": {
+      "emailVerified": true,
+      "phoneVerified": true,
+      "socialVerified": false,
+      "identityVerified": true
+    },
+    "updatedAt": "2024-01-01T10:30:00.000Z"
+  }
+}
+
+2.2 GET PROFILE
+---------------
+Endpoint: GET /influencer/profile
+Auth: Required (Influencer Bearer Token)
+Description: Get own profile with full information
+
+Response (200):
+{
+  "user": {
+    "id": "507f1f77bcf86cd799439011",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role": "influencer",
+    "profileImage": "https://example.com/avatar.jpg",
+    "basicInfo": {
+      "fullName": "John Doe",
+      "username": "john_doe",
+      "bio": "Fashion and lifestyle content creator..."
+    },
+    "contentCategories": ["Fashion", "Lifestyle", "Sustainability"],
+    "contentTypes": ["Posts", "Stories", "Reels"],
+    "contactInfo": {
+      "email": "john@example.com",
+      "phone": "+34612345678",
+      "location": "Madrid, Spain",
+      "website": "https://johndoe.com",
+      "secondaryEmail": "business@john.com",
+      "instagram": "@john_doe_official",
+      "tiktok": "@john_doe"
+    },
+    "location": {
+      "city": "Madrid",
+      "country": "Spain",
+      "state": "Madrid",
+      "coordinates": [2.1734, 41.3851]
+    },
+    "statistics": {
+      "totalFollowers": 5000,
+      "totalEngagement": 25000,
+      "averageEngagementRate": 5.0,
+      "completedCollaborations": 10,
+      "activeCollaborations": 2,
+      "totalEarnings": 5000,
+      "rating": 4.5,
+      "ratingCount": 20
+    },
+    "portfolio": [...],
+    "meta": {
+      "instagram": {
+        "username": "@john_doe",
+        "followers": 5000
+      },
+      "tiktok": {
+        "username": "@john_doe",
+        "followers": 2500
+      }
+    },
+    "status": "active",
+    "isVerified": true,
+    "verificationStatus": {
+      "emailVerified": true,
+      "phoneVerified": true,
+      "socialVerified": false,
+      "identityVerified": true
+    },
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T10:30:00.000Z"
+  }
+}
+
+2.3 GET CONTENT CATEGORIES
+--------------------------
+Endpoint: GET /influencer/categories
+Auth: Required (Influencer Bearer Token)
+
+Response (200):
+{
+  "categories": [
+    "Fashion", "Beauty", "Lifestyle", "Travel", "Food",
+    "Fitness", "Technology", "Gaming", "Art", "Music",
+    "Sports", "Business", "Education", "Health", "Photography",
+    "Dance", "Comedy", "Motivation", "Reviews", "DIY"
+  ]
+}
+
+================================================================================
+3. SOCIAL MEDIA CONNECTION APIs
+================================================================================
+
+3.1 GET CONNECTION STATUS
+-------------------------
+Endpoint: GET /social/connections
+Auth: Required (Bearer Token)
+
+Response (200):
+{
+  "connections": {
+    "instagram": {
+      "connected": true,
+      "username": "@john_doe",
+      "followers": 5000,
+      "expiresAt": "2024-12-31T23:59:59.000Z"
+    },
+    "tiktok": {
+      "connected": true,
+      "username": "@john_doe",
+      "followers": 2500,
+      "expiresAt": "2024-12-31T23:59:59.000Z"
+    }
+  }
+}
+
+3.2 INSTAGRAM OAUTH FLOW
+------------------------
+Step 1: GET /social/instagram/auth
+Response: Redirects to Instagram OAuth authorization page
+
+Step 2: User authorizes on Instagram
+Step 3: Instagram redirects to /social/instagram/callback
+Step 4: Success redirect to frontend with tokens
+
+3.3 TIKTOK OAUTH FLOW
+---------------------
+Step 1: GET /social/tiktok/auth
+Response: Redirects to TikTok OAuth authorization page
+
+Step 2: User authorizes on TikTok
+Step 3: Success redirect to frontend
+
+3.4 DISCONNECT SOCIAL ACCOUNT
+-----------------------------
+DELETE /social/instagram/disconnect
+DELETE /social/tiktok/disconnect
+
+Response (200):
+{
+  "message": "Instagram disconnected successfully"
+}
+
+3.5 REFRESH SOCIAL TOKEN
+------------------------
+POST /social/instagram/refresh
+POST /social/tiktok/refresh
+
+Response (200):
+{
+  "message": "Token refreshed successfully"
+}
+
+================================================================================
+4. OFFERS & COLLABORATION APIs
+================================================================================
+
+4.1 GET AVAILABLE OFFERS
+------------------------
+Endpoint: GET /influencer/offers?page=1&limit=10&category=fashion&minFollowers=1000&search=summer
+Auth: Required (Influencer Bearer Token)
+
+Query Parameters:
+- page: number (default: 1)
+- limit: number (default: 20)
+- category: string (filter by category)
+- location: string (filter by location)
+- search: string (search in title/description)
+- minFollowers: number (minimum follower requirement)
+
+Response (200):
+{
+  "offers": [
+    {
+      "id": "507f1f77bcf86cd799439011",
+      "title": "Summer Collection Collaboration",
+      "description": "Looking for fashion influencers...",
+      "category": "fashion",
+      "campaignImage": "image_url",
+      "business": {
+        "id": "business_id",
+        "name": "Fashion Brand Inc",
+        "businessName": "Fashion Brand Inc",
+        "profileImage": "logo_url"
+      },
+      "offerType": {
+        "type": "exchange",
+        "isMonetary": false
+      },
+      "requirements": {
+        "deliverables": {
+          "instagramPost": true,
+          "instagramStory": true,
+          "instagramReel": true,
+          "tiktokVideo": false
+        },
+        "hashtags": ["#summer", "#fashion"],
+        "mentions": ["@fashionbrand"],
+        "additionalNotes": "Modern style, bright colors..."
+      },
+      "applicationStatus": null,
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 25,
+    "pages": 3
+  }
+}
+
+4.2 APPLY TO OFFER
+------------------
+Endpoint: POST /influencer/offers/apply
+Auth: Required (Influencer Bearer Token)
+
+Request Body:
+{
+  "offerId": "507f1f77bcf86cd799439011",
+  "pitch": "Excited to collaborate with your brand! I have 5K engaged followers...",
+  "portfolioLinks": [
+    "https://instagram.com/p/abc123",
+    "https://instagram.com/p/def456"
+  ]
+}
+
+Validation:
+- offerId: Valid MongoDB ObjectId (required)
+- pitch: String, max 1000 characters (optional)
+- portfolioLinks: Array of strings (optional)
+
+Response (201):
+{
+  "message": "Application submitted successfully",
+  "application": {
+    "id": "application_id",
+    "offerId": "507f1f77bcf86cd799439011",
+    "status": "applied",
+    "pitch": "Excited to collaborate...",
+    "portfolioLinks": ["url1", "url2"],
+    "appliedAt": "2024-01-01T10:00:00.000Z"
+  }
+}
+
+4.3 GET MY APPLICATIONS
+-----------------------
+Endpoint: GET /influencer/applications?page=1&limit=10&status=applied
+Auth: Required (Influencer Bearer Token)
+
+Query Parameters:
+- page: number (default: 1)
+- limit: number (default: 20)
+- status: string (applied, approved, rejected, submitted, approved, disputed)
+
+Response (200):
+{
+  "applications": [
+    {
+      "id": "application_id",
+      "offer": {
+        "id": "offer_id",
+        "title": "Summer Collection",
+        "category": "fashion",
+        "business": {
+          "id": "business_id",
+          "name": "Fashion Brand",
+          "businessName": "Fashion Brand Inc"
+        }
+      },
+      "status": "applied",
+      "pitch": "Excited to collaborate...",
+      "portfolioLinks": ["url1", "url2"],
+      "appliedAt": "2024-01-01T10:00:00.000Z",
+      "updatedAt": "2024-01-01T10:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 5,
+    "pages": 1
+  }
+}
+
+4.4 SUBMIT CONTENT
+------------------
+Endpoint: POST /influencer/content
+Auth: Required (Influencer Bearer Token)
+
+Request Body:
+{
+  "applicationId": "application_id",
+  "contentUrl": "https://instagram.com/p/post_id",
+  "caption": "Loving this summer collection! #summerstyle",
+  "platform": "instagram"
+}
+
+Validation:
+- applicationId: Valid MongoDB ObjectId (required)
+- contentUrl: Valid URL (required)
+- caption: String, max 500 characters (optional)
+- platform: "instagram" | "tiktok" (optional)
+
+Response (201):
+{
+  "message": "Content submitted successfully",
+  "submission": {
+    "id": "submission_id",
+    "applicationId": "application_id",
+    "contentUrl": "https://instagram.com/p/post_id",
+    "caption": "Loving this summer collection!",
+    "platform": "instagram",
+    "status": "submitted",
+    "submittedAt": "2024-01-01T12:00:00.000Z"
+  }
+}
+
+4.5 GET CONTENT SUBMISSIONS
+---------------------------
+Endpoint: GET /influencer/content
+Auth: Required (Influencer Bearer Token)
+
+Response (200):
+{
+  "submissions": [
+    {
+      "id": "submission_id",
+      "application": {
+        "id": "application_id",
+        "offer": {
+          "id": "offer_id",
+          "title": "Summer Collection",
+          "business": {
+            "id": "business_id",
+            "name": "Fashion Brand"
+          }
+        }
+      },
+      "contentUrl": "https://instagram.com/p/post_id",
+      "caption": "Loving this summer collection!",
+      "platform": "instagram",
+      "status": "submitted",
+      "feedback": null,
+      "submittedAt": "2024-01-01T12:00:00.000Z"
+    }
+  ]
+}
+
+================================================================================
+5. NOTIFICATION PREFERENCES APIs
+================================================================================
+
+5.1 GET NOTIFICATION PREFERENCES
+--------------------------------
+Endpoint: GET /influencer/notifications
+Auth: Required (Influencer Bearer Token)
+
+Response (200):
+{
+  "preferences": {
+    "general": {
+      "pushNotifications": true,
+      "emailNotifications": true
+    },
+    "offersAndCollaborations": {
+      "newOfferAlerts": true,
+      "directInvitations": true,
+      "collaborationStatusUpdates": true,
+      "deadlineReminders": true
+    },
+    "messages": {
+      "newMessages": true,
+      "messageReplies": true
+    },
+    "profileActivity": {
+      "profileViews": false,
+      "newFollowers": false,
+      "contentLikes": false
+    },
+    "recommendations": {
+      "personalizedOffers": true,
+      "profileImprovementTips": false,
+      "trendingContent": true
+    },
+    "quietHours": {
+      "enabled": false,
+      "from": null,
+      "to": null,
+      "timezone": "UTC"
+    },
+    "emailFrequency": "daily"
+  }
+}
+
+5.2 UPDATE NOTIFICATION PREFERENCES
+-----------------------------------
+Endpoint: PUT /influencer/notifications
+Auth: Required (Influencer Bearer Token)
+
+Request Body (All fields optional, only send fields to update):
+{
+  "general": {
+    "pushNotifications": true,
+    "emailNotifications": true
+  },
+  "offersAndCollaborations": {
+    "newOfferAlerts": true,
+    "directInvitations": true,
+    "collaborationStatusUpdates": true,
+    "deadlineReminders": true
+  },
+  "messages": {
+    "newMessages": true,
+    "messageReplies": true
+  },
+  "profileActivity": {
+    "profileViews": false,
+    "newFollowers": false,
+    "contentLikes": false
+  },
+  "recommendations": {
+    "personalizedOffers": true,
+    "profileImprovementTips": false,
+    "trendingContent": true
+  },
+  "quietHours": {
+    "enabled": true,
+    "from": "22:00",
+    "to": "08:00",
+    "timezone": "Europe/Madrid"
+  },
+  "emailFrequency": "daily"
+}
+
+Validation:
+- emailFrequency: "immediate" | "daily" | "weekly"
+- quietHours.from/to: HH:MM format (e.g., "22:00")
+
+Response (200):
+{
+  "message": "Notification preferences updated successfully",
+  "preferences": {
+    // Updated preferences object
+  }
+}
+
+5.3 RESET NOTIFICATIONS TO DEFAULT
+-----------------------------------
+Endpoint: POST /influencer/notifications/reset
+Auth: Required (Influencer Bearer Token)
+
+Response (200):
+{
+  "message": "Notification preferences reset to defaults",
+  "preferences": {
+    // Default preferences object
+  }
+}
+
+5.4 GET NOTIFICATION SUMMARY
+-----------------------------
+Endpoint: GET /influencer/notifications/summary
+Auth: Required (Influencer Bearer Token)
+
+Response (200):
+{
+  "summary": {
+    "emailEnabled": true,
+    "pushEnabled": true,
+    "emailFrequency": "daily",
+    "quietHoursEnabled": false,
+    "quietHoursRange": null
+  }
+}
+
+================================================================================
+6. PRIVACY SETTINGS APIs
+================================================================================
+
+6.1 GET PRIVACY SETTINGS
+------------------------
+Endpoint: GET /influencer/privacy
+Auth: Required (Influencer Bearer Token)
+
+Response (200):
+{
+  "privacySettings": {
+    "profilePrivacy": {
+      "isProfilePublic": true,
+      "showEmailPublic": false,
+      "showPhonePublic": false,
+      "showStatistics": true,
+      "allowMessages": true,
+      "allowOfferInvitations": true,
+      "showPortfolio": true
+    },
+    "accountSecurity": {
+      "twoFactorAuthEnabled": false,
+      "loginAlerts": true
+    },
+    "dataPrivacy": {
+      "canDownloadData": true,
+      "canDeleteAccount": true,
+      "dataDownloadRequested": false,
+      "accountDeletionRequested": false
+    }
+  }
+}
+
+6.2 UPDATE PRIVACY SETTINGS
+---------------------------
+Endpoint: PUT /influencer/privacy
+Auth: Required (Influencer Bearer Token)
+
+Request Body (All fields optional):
+{
+  "profilePrivacy": {
+    "isProfilePublic": true,
+    "showEmailPublic": false,
+    "showPhonePublic": false,
+    "showStatistics": true,
+    "allowMessages": true,
+    "allowOfferInvitations": true,
+    "showPortfolio": true
+  },
+  "accountSecurity": {
+    "twoFactorAuthEnabled": false
+  }
+}
+
+Response (200):
+{
+  "message": "Privacy settings updated successfully",
+  "privacySettings": {
+    // Updated privacy settings object
+  }
+}
+
+================================================================================
+7. SESSION MANAGEMENT APIs
+================================================================================
+
+7.1 GET ACTIVE SESSIONS
+------------------------
+Endpoint: GET /influencer/sessions
+Auth: Required (Influencer Bearer Token)
+
+Response (200):
+{
+  "sessions": [
+    {
+      "sessionId": "sess_1",
+      "deviceName": "Chrome on MacBook",
+      "deviceType": "desktop",
+      "browser": "Chrome",
+      "os": "macOS",
+      "location": "Madrid, Spain",
+      "ipAddress": "192.168.1.1",
+      "lastActive": "2024-01-01T10:00:00.000Z",
+      "isCurrentSession": true,
+      "createdAt": "2024-01-01T09:00:00.000Z"
+    }
+  ]
+}
+
+7.2 DEACTIVATE SESSION
+----------------------
+Endpoint: DELETE /influencer/sessions/:sessionId
+Auth: Required (Influencer Bearer Token)
+
+Response (200):
+{
+  "message": "Session deactivated successfully"
+}
+
+7.3 DEACTIVATE ALL OTHER SESSIONS
+---------------------------------
+Endpoint: POST /influencer/sessions/deactivate-others
+Auth: Required (Influencer Bearer Token)
+
+Request Body:
+{
+  "currentSessionId": "current_session_id"
+}
+
+Response (200):
+{
+  "message": "All other sessions deactivated successfully"
+}
+
+================================================================================
+8. GDPR COMPLIANCE APIs
+================================================================================
+
+8.1 REQUEST DATA DOWNLOAD
+-------------------------
+Endpoint: POST /influencer/gdpr/download-data
+Auth: Required (Influencer Bearer Token)
+
+Response (200):
+{
+  "message": "Data download request submitted. You will receive an email with download instructions.",
+  "requestedAt": "2024-01-01T10:00:00.000Z"
+}
+
+8.2 GET DATA EXPORT
+-------------------
+Endpoint: GET /influencer/gdpr/export-data
+Auth: Required (Influencer Bearer Token)
+
+Response (200):
+{
+  "message": "Data export generated successfully",
+  "data": {
+    "user": {
+      "personalInfo": {
+        "id": "507f1f77bcf86cd799439011",
+        "name": "John Doe",
+        "email": "john@example.com",
+        "phone": "+34612345678",
+        "role": "influencer",
+        "status": "active",
+        "createdAt": "2024-01-01T00:00:00.000Z",
+        "updatedAt": "2024-01-01T10:00:00.000Z"
+      },
+      "profile": {
+        "profileImage": "https://example.com/avatar.jpg",
+        "basicInfo": {
+          "fullName": "John Doe",
+          "username": "john_doe",
+          "bio": "Fashion content creator"
+        },
+        "contentCategories": ["Fashion", "Lifestyle"],
+        "contactInfo": {
+          "email": "john@example.com",
+          "phone": "+34612345678",
+          "location": "Madrid, Spain",
+          "website": "https://johndoe.com"
+        }
+      },
+      "socialConnections": {
+        "instagram": {
+          "username": "@john_doe",
+          "followers": 5000,
+          "connectedAt": "2024-01-01T05:00:00.000Z"
+        },
+        "tiktok": {
+          "username": "@john_doe",
+          "followers": 2500,
+          "connectedAt": "2024-01-01T06:00:00.000Z"
+        }
+      },
+      "privacySettings": {...},
+      "notificationPreferences": {...}
+    },
+    "exportDate": "2024-01-01T10:00:00.000Z",
+    "version": "1.0"
+  }
+}
+
+8.3 REQUEST ACCOUNT DELETION
+-----------------------------
+Endpoint: POST /influencer/gdpr/delete-account
+Auth: Required (Influencer Bearer Token)
+
+Response (200):
+{
+  "message": "Account deletion request submitted. Your account will be deleted in 30 days. You can cancel this request anytime before then.",
+  "deletionDate": "2024-01-31T10:00:00.000Z",
+  "requestedAt": "2024-01-01T10:00:00.000Z"
+}
+
+8.4 CANCEL ACCOUNT DELETION
+----------------------------
+Endpoint: DELETE /influencer/gdpr/cancel-deletion
+Auth: Required (Influencer Bearer Token)
+
+Response (200):
+{
+  "message": "Account deletion request cancelled successfully"
+}
+
+================================================================================
+9. PUBLIC APIs (No Authentication Required)
+================================================================================
+
+9.1 BROWSE PUBLIC PROFILES
+---------------------------
+Endpoint: GET /influencer/public/profiles?page=1&limit=10&category=fashion&location=madrid&search=john
+
+Query Parameters:
+- page: number (default: 1)
+- limit: number (default: 20)
+- category: string (filter by content category)
+- location: string (filter by location - searches in contactInfo.location, location.city, location.country)
+- search: string (search by name/username/bio)
+
+Response (200):
+{
+  "profiles": [
+    {
+      "id": "507f1f77bcf86cd799439011",
+      "name": "John Doe",
+      "profileImage": "https://example.com/avatar.jpg",
+      "username": "john_doe",
+      "bio": "Fashion content creator",
+      "contentCategories": ["Fashion", "Lifestyle"],
+      "location": "Madrid, Spain",
+      "website": "https://johndoe.com",
+      "statistics": {
+        "totalFollowers": 5000,
+        "rating": 4.5,
+        "ratingCount": 20
+      },
+      "joinedAt": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 50,
+    "pages": 5
+  }
+}
+
+9.2 VIEW PUBLIC PROFILE
+-----------------------
+Endpoint: GET /influencer/public/profile/:userId
+
+Response (200):
+{
+  "user": {
+    "id": "507f1f77bcf86cd799439011",
+    "name": "John Doe",
+    "profileImage": "https://example.com/avatar.jpg",
+    "basicInfo": {
+      "username": "john_doe",
+      "bio": "Fashion content creator"
+    },
+    "contentCategories": ["Fashion", "Lifestyle"],
+    "contactInfo": {
+      "location": "Madrid, Spain",
+      "website": "https://johndoe.com"
+    },
+    "location": {
+      "city": "Madrid",
+      "country": "Spain"
+    },
+    "statistics": {
+      "totalFollowers": 5000,
+      "rating": 4.5,
+      "ratingCount": 20
+    },
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+
+9.3 GET CONTENT CATEGORIES (PUBLIC)
+------------------------------------
+Endpoint: GET /influencer/public/categories
+
+Response (200):
+{
+  "categories": [
+    "Fashion", "Beauty", "Lifestyle", "Travel", "Food",
+    "Fitness", "Technology", "Gaming", "Art", "Music",
+    "Sports", "Business", "Education", "Health", "Photography",
+    "Dance", "Comedy", "Motivation", "Reviews", "DIY"
+  ]
+}
+
+================================================================================
+10. ERROR RESPONSES
+================================================================================
+
+400 Bad Request:
+{
+  "message": "Validation error message"
+}
+
+401 Unauthorized:
+{
+  "message": "Auth token missing"
+}
+
+403 Forbidden:
+{
+  "message": "Insufficient permissions"
+}
+
+404 Not Found:
+{
+  "message": "Influencer not found"
+}
+
+409 Conflict:
+{
+  "message": "Username already taken"
+}
+
+422 Unprocessable Entity:
+{
+  "message": "Validation failed",
+  "errors": ["Field specific error"]
+}
+
+500 Internal Server Error:
+{
+  "message": "Internal server error"
+}
+
+================================================================================
+11. DATA FORMATS & VALIDATION RULES
+================================================================================
+
+CONTENT CATEGORIES:
+["Fashion", "Beauty", "Lifestyle", "Travel", "Food", "Fitness", "Technology", "Gaming", "Art", "Music", "Sports", "Business", "Education", "Health", "Photography", "Dance", "Comedy", "Motivation", "Reviews", "DIY"]
+
+EMAIL FREQUENCY:
+"immediate" | "daily" | "weekly"
+
+PLATFORM TYPES:
+"instagram" | "tiktok"
+
+APPLICATION STATUSES:
+"applied" | "approved" | "rejected" | "submitted" | "approved" | "disputed"
+
+USER STATUSES:
+"active" | "adminpending" | "suspended" | "inactive"
+
+VALIDATION RULES:
+- Email: Valid email format, unique across all models
+- Password: Minimum 6 characters
+- Username: 3-30 chars, alphanumeric + underscore only, unique
+- Bio: Maximum 500 characters
+- URLs: Valid HTTP/HTTPS URLs
+- Phone: Valid phone number format
+- contentUrl: Valid URL format
+- quietHours.from/to: HH:MM format (e.g., "22:00")
+
+FIELD MAPPINGS:
+- API "basicInfo.fullName" → Model "name" (top-level field)
+- API "basicInfo.username" → Model "username" (top-level field)
+- API "basicInfo.bio" → Model "bio" (top-level field)
+- API "contactInfo.location" → Model "contactInfo.location" (String field)
+- API "location" → Model "location" (Object with city, country, state, coordinates)
+
+================================================================================
+RATE LIMITING
+================================================================================
+- Authentication: 10 requests per 15 minutes
+- Profile operations: 50 requests per 15 minutes
+- Offer browsing: 100 requests per 15 minutes
+- Content submission: 20 requests per hour
+- Public endpoints: 200 requests per 15 minutes
+
+================================================================================
+cURL EXAMPLES
+================================================================================
+
+UPDATE PROFILE:
+curl -X PUT http://localhost:5500/api/influencer/profile \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{
+    "profileImage": "https://example.com/avatar.jpg",
+    "basicInfo": {
+      "fullName": "John Doe",
+      "username": "johndoe",
+      "bio": "Fashion influencer from Madrid"
+    },
+    "contentCategories": ["Fashion", "Lifestyle"],
+    "contactInfo": {
+      "location": "Madrid, Spain",
+      "website": "https://johndoe.com",
+      "phone": "+34612345678"
+    }
+  }'
+
+GET PROFILE:
+curl -X GET http://localhost:5500/api/influencer/profile \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+APPLY TO OFFER:
+curl -X POST http://localhost:5500/api/influencer/offers/apply \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{
+    "offerId": "507f1f77bcf86cd799439011",
+    "pitch": "Excited to collaborate!",
+    "portfolioLinks": ["https://instagram.com/p/abc123"]
+  }'
+
+UPDATE NOTIFICATIONS:
+curl -X PUT http://localhost:5500/api/influencer/notifications \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -d '{
+    "general": {
+      "pushNotifications": true,
+      "emailNotifications": true
+    },
+    "emailFrequency": "daily"
+  }'
+
+================================================================================
+END OF INFLUENCER API DOCUMENTATION
+================================================================================

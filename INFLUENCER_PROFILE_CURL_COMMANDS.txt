@@ -1,0 +1,220 @@
+INFLUENCER PROFILE UPDATE - CURL COMMANDS
+==========================================
+
+BASE URL: http://localhost:5500/api/influencer/profile
+METHOD: PUT
+AUTH: Bearer Token Required
+
+IMPORTANT: Replace YOUR_ACCESS_TOKEN_HERE with your actual JWT token
+
+================================================================================
+1. FULL PROFILE UPDATE
+================================================================================
+
+curl -X PUT "http://localhost:5500/api/influencer/profile" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
+  -d '{
+    "profileImage": "https://example.com/new-profile.jpg",
+    "username": "fashion_influencer_2024",
+    "bio": "Professional fashion and lifestyle influencer | Madrid based | DM for collaborations",
+    "contentCategories": ["Fashion", "Lifestyle", "Beauty"],
+    "contentTypes": ["Posts", "Stories", "Reels"],
+    "contactInfo": {
+      "secondaryEmail": "business@fashioninfluencer.com",
+      "location": "Madrid, Spain",
+      "website": "https://fashioninfluencer.com",
+      "instagram": "@fashion_influencer",
+      "tiktok": "@fashion_influencer"
+    },
+    "location": {
+      "city": "Madrid",
+      "country": "Spain",
+      "state": "Madrid",
+      "coordinates": [-3.7038, 40.4168]
+    }
+  }'
+
+================================================================================
+2. MINIMAL UPDATE - USERNAME & BIO ONLY
+================================================================================
+
+curl -X PUT "http://localhost:5500/api/influencer/profile" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
+  -d '{
+    "username": "new_username",
+    "bio": "Updated bio description"
+  }'
+
+================================================================================
+3. UPDATE SOCIAL MEDIA HANDLES ONLY
+================================================================================
+
+curl -X PUT "http://localhost:5500/api/influencer/profile" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
+  -d '{
+    "contactInfo": {
+      "instagram": "@new_instagram_handle",
+      "tiktok": "@new_tiktok_handle"
+    }
+  }'
+
+================================================================================
+4. UPDATE LOCATION ONLY
+================================================================================
+
+curl -X PUT "http://localhost:5500/api/influencer/profile" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
+  -d '{
+    "contactInfo": {
+      "location": "Barcelona, Spain"
+    },
+    "location": {
+      "city": "Barcelona",
+      "country": "Spain",
+      "coordinates": [2.1734, 41.3851]
+    }
+  }'
+
+================================================================================
+5. UPDATE CONTENT CATEGORIES ONLY
+================================================================================
+
+curl -X PUT "http://localhost:5500/api/influencer/profile" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
+  -d '{
+    "contentCategories": ["Travel", "Food", "Photography"],
+    "contentTypes": ["Posts", "Reels", "Stories"]
+  }'
+
+================================================================================
+6. UPDATE PROFILE IMAGE ONLY
+================================================================================
+
+curl -X PUT "http://localhost:5500/api/influencer/profile" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
+  -d '{
+    "profileImage": "https://example.com/new-avatar.jpg"
+  }'
+
+================================================================================
+7. UPDATE WEBSITE AND CONTACT INFO
+================================================================================
+
+curl -X PUT "http://localhost:5500/api/influencer/profile" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN_HERE" \
+  -d '{
+    "contactInfo": {
+      "website": "https://mynewwebsite.com",
+      "secondaryEmail": "contact@mynewemail.com",
+      "location": "Paris, France"
+    },
+    "location": {
+      "city": "Paris",
+      "country": "France",
+      "coordinates": [2.3522, 48.8566]
+    }
+  }'
+
+================================================================================
+EXPECTED SUCCESS RESPONSE
+================================================================================
+
+{
+  "message": "Profile updated successfully",
+  "user": {
+    "id": "influencer_id",
+    "name": "Full Name",
+    "email": "primary@email.com",
+    "role": "influencer",
+    "profileImage": "https://example.com/profile.jpg",
+    "username": "username",
+    "bio": "Bio description",
+    "contentCategories": ["Fashion", "Lifestyle"],
+    "contentTypes": ["Posts", "Stories"],
+    "contactInfo": {
+      "email": "primary@email.com",
+      "phone": "+1234567890",
+      "secondaryEmail": "secondary@email.com",
+      "location": "Madrid, Spain",
+      "website": "https://website.com",
+      "instagram": "@instagram",
+      "tiktok": "@tiktok"
+    },
+    "location": {
+      "city": "Madrid",
+      "country": "Spain",
+      "state": "Madrid",
+      "coordinates": [-3.7038, 40.4168]
+    },
+    "statistics": {
+      "totalFollowers": 50000,
+      "totalEngagement": 2500,
+      "averageEngagementRate": 5.0,
+      "completedCollaborations": 25,
+      "activeCollaborations": 3,
+      "totalEarnings": 15000,
+      "rating": 4.7,
+      "ratingCount": 18
+    },
+    "portfolio": 12,
+    "status": "active",
+    "isVerified": true,
+    "verificationStatus": {
+      "emailVerified": true,
+      "phoneVerified": true,
+      "socialVerified": true,
+      "identityVerified": false
+    },
+    "updatedAt": "2024-01-15T10:30:00.000Z"
+  }
+}
+
+================================================================================
+ERROR RESPONSES
+================================================================================
+
+400 Bad Request (Validation Error):
+{
+  "message": "Username must be 3-30 characters, alphanumeric and underscores only"
+}
+
+409 Conflict (Username Taken):
+{
+  "message": "Username already taken"
+}
+
+404 Not Found (Influencer Not Found):
+{
+  "message": "Influencer not found"
+}
+
+401 Unauthorized (Invalid/Missing Token):
+{
+  "message": "Authentication required"
+}
+
+================================================================================
+VALIDATION RULES
+================================================================================
+
+- username: 3-30 chars, alphanumeric + underscore only, must be unique
+- bio: max 500 characters
+- contentCategories: array of strings
+- contentTypes: array of strings
+- secondaryEmail: valid email format
+- website: valid URL format
+- coordinates: [longitude, latitude] array
+- profileImage: valid URL string
+
+================================================================================
+RATE LIMITING
+================================================================================
+
+- Profile operations: 50 requests per 15 minutes per influencer

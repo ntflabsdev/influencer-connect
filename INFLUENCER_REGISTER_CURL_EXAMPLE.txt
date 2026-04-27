@@ -1,0 +1,118 @@
+INFLUENCER REGISTRATION WITH AUTO-GENERATED USERNAME
+=======================================================
+
+BASE URL: http://localhost:5500/api/auth/register
+METHOD: POST
+
+REGISTER AN INFLUENCER (USERNAME WILL BE AUTO-GENERATED)
+=======================================================
+
+curl -X POST "http://localhost:5500/api/auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.smith@example.com",
+    "password": "password123",
+    "role": "influencer",
+    "name": "John Smith",
+    "phone": "+1234567890",
+    "meta": {
+      "source": "website",
+      "campaign": "influencer_signup_2024"
+    }
+  }'
+
+EXPECTED SUCCESS RESPONSE:
+=========================
+
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "refresh_token_here",
+  "user": {
+    "id": "507f1f77bcf86cd799439011",
+    "name": "John Smith",
+    "email": "john.smith@example.com",
+    "role": "influencer",
+    "status": "adminpending",
+    "username": "johnsmith",
+    "createdAt": "2024-01-15T10:00:00.000Z"
+  }
+}
+
+WHAT HAPPENS AUTOMATICALLY:
+===========================
+
+1. User account is created with all default influencer settings
+2. System generates unique username: "johnsmith"
+3. Username is checked across ALL user types (admin, business, influencer)
+4. If "johnsmith" exists, it tries "johnsmith1", "johnsmith2", etc.
+5. Username is saved to the user record
+6. Email verification link is generated (currently commented out)
+
+MORE EXAMPLES:
+==============
+
+# Example 1: Name with special characters
+curl -X POST "http://localhost:5500/api/auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "maria@example.com",
+    "password": "password123",
+    "role": "influencer",
+    "name": "María José González",
+    "phone": "+34123456789"
+  }'
+# Generated username: "mariajosegonzal"
+
+# Example 2: Very short name
+curl -X POST "http://localhost:5500/api/auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "alex@example.com",
+    "password": "password123",
+    "role": "influencer",
+    "name": "Alex",
+    "phone": "+1234567890"
+  }'
+# Generated username: "alex"
+
+# Example 3: Name with numbers/spaces
+curl -X POST "http://localhost:5500/api/auth/register" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "password123",
+    "role": "influencer",
+    "name": "Test User 123",
+    "phone": "+1234567890"
+  }'
+# Generated username: "testuser123"
+
+ERROR RESPONSES:
+================
+
+409 Conflict (Email already exists):
+{
+  "message": "Email already registered"
+}
+
+400 Bad Request (Invalid data):
+{
+  "message": "Validation error message"
+}
+
+DEFAULT INFLUENCER SETTINGS CREATED:
+===================================
+
+✅ Basic Profile: name, email, phone, avatarUrl
+✅ Content Settings: contentCategories[], contentTypes[]
+✅ Contact Info: secondaryEmail, location, website, instagram, tiktok
+✅ Portfolio: Empty array (user can add later)
+✅ Statistics: All initialized to 0
+✅ Notification Preferences: Sensible defaults enabled
+✅ Privacy Settings: Profile public, data protection enabled
+✅ Verification Status: emailVerified: false, others: false
+✅ Status: adminpending (needs admin approval)
+✅ Activity Tracking: lastActive, loginCount, profileViews
+✅ Referral System: referralCode, referredBy, referralCount
+
+The username is the only field that gets auto-generated - everything else uses provided data or sensible defaults.

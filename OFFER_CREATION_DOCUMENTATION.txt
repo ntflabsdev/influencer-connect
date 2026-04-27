@@ -1,0 +1,475 @@
+============================================================
+OFFER CREATION API DOCUMENTATION - INFLUENCER CONNECT PLATFORM
+============================================================
+
+BASE URL: http://localhost:4000/api
+AUTHENTICATION: Bearer Token Required (Business Role Only)
+
+================================================================================
+OFFER CREATION API OVERVIEW
+================================================================================
+
+The Offer Creation API allows businesses to create, manage, and publish collaboration offers
+for influencers. The API includes payment verification, offer validation, and status management.
+
+================================================================================
+1. CREATE OFFER API
+================================================================================
+
+Endpoint: POST /business/offers
+Auth: Required (Business)
+Description: Create a new collaboration offer
+
+Request Body Structure:
+{
+  "offer": {
+    "basicInfo": {
+      "title": "Summer Collection Collaboration",           // Required: 3-100 chars
+      "category": "fashion",                                // Required: predefined category
+      "description": "Looking for influencers to promote our summer collection", // Required: 10-1000 chars
+      "campaignImage": "https://example.com/image.jpg"     // Optional: image URL
+    },
+
+    "offerType": {
+      "type": "exchange",                                   // Required: "exchange" | "paid"
+      "isMonetary": false                                   // Required: boolean
+    },
+
+    "paidDetails": {
+      "pricePerCollaboration": null,                        // Required for paid offers: number
+      "currency": "EUR"                                     // Optional: default EUR
+    },
+
+    "collaborators": {
+      "maxCount": 5                                         // Optional: 1-50, default unlimited
+    },
+
+    "requirements": {
+      "deliverables": {
+        "instagramPost": true,                              // At least one platform required
+        "instagramStory": true,
+        "instagramReel": true,
+        "tiktokVideo": false
+      },
+
+      "hashtags": [                                         // Optional: array of strings
+        "#summercollection",
+        "#fashionbrand"
+      ],
+
+      "mentions": [                                         // Optional: array of strings
+        "@fashionbrand"
+      ],
+
+      "additionalNotes": "Modern style, bright colors, mention the collection", // Optional: string
+
+      "referenceImages": [                                  // Optional: array of URLs
+        "https://example.com/ref1.jpg",
+        "https://example.com/ref2.jpg"
+      ]
+    },
+
+    "status": "draft"                                       // Optional: "draft" | "published"
+  }
+}
+
+Response:
+{
+  "message": "Offer created successfully",
+  "offer": {
+    "id": "offer_id",
+    "title": "Summer Collection Collaboration",
+    "status": "draft",
+    "offerType": {
+      "type": "exchange",
+      "isMonetary": false
+    },
+    "paymentVerified": null,                               // null for exchange, true/false for paid
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+
+================================================================================
+2. PAYMENT VERIFICATION SYSTEM
+================================================================================
+
+PAYMENT VERIFICATION LOGIC:
+- Exchange offers: No payment verification required
+- Paid offers: Business must have verified payment method
+- Verification Status: "verified" | "unverified" | "pending"
+
+VERIFICATION CHECK PROCESS:
+1. Business attempts to create paid offer
+2. System checks payment verification status
+3. If unverified: Return 422 error with code "PAYMENT_VERIFICATION_REQUIRED"
+4. If verified: Allow offer creation with "paymentVerified": true
+
+PAYMENT VERIFICATION RESPONSE:
+{
+  "message": "Payment verification required for paid offers",
+  "code": "PAYMENT_VERIFICATION_REQUIRED"
+}
+
+================================================================================
+3. OFFER MANAGEMENT APIs
+================================================================================
+
+3.1 LIST BUSINESS OFFERS
+------------------------
+Endpoint: GET /business/offers
+Auth: Required (Business)
+
+Query Parameters:
+- status: draft/published/closed (optional)
+- page: number (default: 1)
+- limit: number (default: 20)
+
+Response:
+{
+  "offers": [
+    {
+      "id": "offer_id",
+      "title": "Summer Collection Collaboration",
+      "status": "draft",
+      "offerType": {
+        "type": "exchange",
+        "isMonetary": false
+      },
+      "paymentVerified": null,
+      "applicationsCount": 0,
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 1,
+    "pages": 1
+  }
+}
+
+3.2 GET OFFER DETAILS
+---------------------
+Endpoint: GET /business/offers/:offerId
+Auth: Required (Business)
+
+Response:
+{
+  "offer": {
+    "id": "offer_id",
+    "basicInfo": {
+      "title": "Summer Collection Collaboration",
+      "category": "fashion",
+      "description": "Looking for influencers...",
+      "campaignImage": "image_url"
+    },
+    "offerType": {
+      "type": "exchange",
+      "isMonetary": false
+    },
+    "paidDetails": {
+      "pricePerCollaboration": null,
+      "currency": "EUR"
+    },
+    "collaborators": {
+      "maxCount": 5
+    },
+    "requirements": {
+      "deliverables": {...},
+      "hashtags": [...],
+      "mentions": [...],
+      "additionalNotes": "...",
+      "referenceImages": [...]
+    },
+    "status": "draft",
+    "paymentVerified": null,
+    "applicationsCount": 0,
+    "filters": {
+      "minFollowers": 1000,
+      "platforms": ["instagram"],
+      "categories": ["fashion"]
+    },
+    "analytics": {
+      "views": 0,
+      "applications": 0
+    },
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+
+3.3 UPDATE OFFER
+----------------
+Endpoint: PUT /business/offers/:offerId
+Auth: Required (Business)
+
+Request Body: Same structure as create offer
+
+Response:
+{
+  "message": "Offer updated successfully",
+  "offer": {
+    "id": "offer_id",
+    "title": "Updated Title",
+    "status": "draft",
+    "offerType": {...},
+    "paymentVerified": null,
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+
+3.4 PUBLISH OFFER
+-----------------
+Endpoint: POST /business/offers/:offerId/publish
+Auth: Required (Business)
+
+Requirements:
+- Offer status must be "draft"
+- For paid offers: Payment must be verified
+
+Response:
+{
+  "message": "Offer published successfully",
+  "offer": {
+    "id": "offer_id",
+    "title": "Summer Collection Collaboration",
+    "status": "published"
+  }
+}
+
+3.5 CLOSE OFFER
+---------------
+Endpoint: POST /business/offers/:offerId/close
+Auth: Required (Business)
+
+Requirements:
+- Offer status must be "published"
+
+Response:
+{
+  "message": "Offer closed successfully",
+  "offer": {
+    "id": "offer_id",
+    "title": "Summer Collection Collaboration",
+    "status": "closed"
+  }
+}
+
+3.6 DELETE OFFER
+----------------
+Endpoint: DELETE /business/offers/:offerId
+Auth: Required (Business)
+
+Requirements:
+- Offer status must be "draft"
+
+Response:
+{
+  "message": "Offer deleted successfully"
+}
+
+================================================================================
+4. OFFER VALIDATION RULES
+================================================================================
+
+REQUIRED FIELDS:
+- basicInfo.title: 3-100 characters
+- basicInfo.category: Must be from predefined list
+- basicInfo.description: 10-1000 characters
+- offerType.type: "exchange" | "paid"
+- offerType.isMonetary: boolean
+- requirements.deliverables: At least one platform must be true
+
+CONDITIONAL REQUIREMENTS:
+- Paid offers: paidDetails.pricePerCollaboration > 0
+- Paid offers: Payment verification required
+- Hashtags: Must start with #
+- Mentions: Must start with @
+
+OPTIONAL FIELDS:
+- campaignImage: Image URL
+- collaborators.maxCount: 1-50
+- hashtags: Array of strings
+- mentions: Array of strings
+- additionalNotes: String (max 1000 chars)
+- referenceImages: Array of image URLs
+
+================================================================================
+5. OFFER STATUS FLOW
+================================================================================
+
+DRAFT → PUBLISHED → CLOSED
+  ↓        ↓         ↓
+  └─ DELETE  └─ ACTIVE OFFERS
+
+STATUS DEFINITIONS:
+- draft: Offer being created/edited, not visible to influencers
+- published: Offer is live and visible to influencers
+- closed: Offer is no longer accepting applications
+
+================================================================================
+6. PAYMENT INTEGRATION
+================================================================================
+
+PAYMENT VERIFICATION API (Future Implementation):
+- Endpoint: GET /business/payment/verification-status
+- Returns: verified | unverified | pending
+
+PAYMENT METHOD SETUP (Future Implementation):
+- Endpoint: POST /business/payment/method
+- Integrates with Stripe for card verification
+
+OFFER PAYMENT FLOW (Future Implementation):
+1. Business creates paid offer
+2. System holds payment until collaboration completion
+3. Automatic release on business approval
+4. Influencer receives payment
+
+================================================================================
+7. ERROR HANDLING
+================================================================================
+
+VALIDATION ERRORS (400):
+{
+  "message": "Validation failed",
+  "errors": [
+    "Title must be between 3-100 characters",
+    "Description must be between 10-1000 characters"
+  ]
+}
+
+PAYMENT VERIFICATION REQUIRED (422):
+{
+  "message": "Payment verification required for paid offers",
+  "code": "PAYMENT_VERIFICATION_REQUIRED"
+}
+
+PERMISSION ERRORS (403):
+{
+  "message": "Only businesses can create offers"
+}
+
+NOT FOUND (404):
+{
+  "message": "Offer not found"
+}
+
+================================================================================
+8. RATE LIMITING
+================================================================================
+
+- Offer creation: 20 offers per hour per business
+- Offer updates: 100 requests per 15 minutes per business
+- Offer listing: 200 requests per 15 minutes per business
+
+================================================================================
+9. DATA STRUCTURES
+================================================================================
+
+OFFER OBJECT:
+{
+  id: "string",           // MongoDB ObjectId
+  business: "string",     // Business user ID
+  title: "string",        // 3-100 chars
+  description: "string",  // 10-1000 chars
+  category: "string",     // Predefined category
+  campaignImage: "string", // Image URL
+  offerType: {
+    type: "exchange|paid",
+    isMonetary: boolean
+  },
+  paidDetails: {
+    pricePerCollaboration: number,
+    currency: "EUR"
+  },
+  collaborators: {
+    maxCount: number
+  },
+  requirements: {
+    deliverables: {
+      instagramPost: boolean,
+      instagramStory: boolean,
+      instagramReel: boolean,
+      tiktokVideo: boolean
+    },
+    hashtags: ["string"],
+    mentions: ["string"],
+    additionalNotes: "string",
+    referenceImages: ["string"]
+  },
+  status: "draft|published|closed",
+  filters: {
+    minFollowers: number,
+    platforms: ["string"],
+    categories: ["string"]
+  },
+  analytics: {
+    views: number,
+    applications: number
+  },
+  createdAt: "ISO_date",
+  updatedAt: "ISO_date"
+}
+
+================================================================================
+10. SAMPLE API CALLS
+================================================================================
+
+CREATE EXCHANGE OFFER:
+curl -X POST http://localhost:4000/api/business/offers \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "offer": {
+      "basicInfo": {
+        "title": "Summer Collection Collaboration",
+        "category": "fashion",
+        "description": "Looking for fashion influencers for summer campaign"
+      },
+      "offerType": {
+        "type": "exchange",
+        "isMonetary": false
+      },
+      "requirements": {
+        "deliverables": {
+          "instagramPost": true,
+          "instagramStory": true
+        },
+        "hashtags": ["#summer", "#fashion"],
+        "mentions": ["@brand"]
+      }
+    }
+  }'
+
+CREATE PAID OFFER:
+curl -X POST http://localhost:4000/api/business/offers \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "offer": {
+      "basicInfo": {
+        "title": "Premium Brand Collaboration",
+        "category": "fashion",
+        "description": "High-end fashion brand collaboration"
+      },
+      "offerType": {
+        "type": "paid",
+        "isMonetary": true
+      },
+      "paidDetails": {
+        "pricePerCollaboration": 500,
+        "currency": "EUR"
+      },
+      "requirements": {
+        "deliverables": {
+          "instagramPost": true,
+          "instagramReel": true
+        }
+      }
+    }
+  }'
+
+================================================================================
+END OF OFFER CREATION API DOCUMENTATION
+================================================================================
