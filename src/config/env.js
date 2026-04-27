@@ -14,7 +14,7 @@ required.forEach((key) => {
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: Number(process.env.PORT) || 5500,
-  mongoUri: process.env.MONGO_URI || 'mongodb+srv://aakashrajputntf:_9ZeTyyggsZ5nuL@cluster0.0ngxl.mongodb.net/mydb?appName=Cluster0',
+  mongoUri: process.env.MONGO_URI || 'mongodb+srv://aakashrajputntf:_9ZeTyyggsZ5nuL@cluster0.0ngxl.mongodb.net/influencer-connect?appName=Cluster0',
   jwtSecret: process.env.JWT_SECRET || 'changeme',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   clientUrl: process.env.CLIENT_URL || 'http://localhost:3001',

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from 'react';
-import { adminApi } from '../../../lib/api.js';
-import Card from '../../../components/Card.js';
-import Button from '../../../components/Button.js';
-import { useToast } from '../../../components/ToastProvider.js';
+import { adminApi } from '../../../../lib/api.js';
+import Card from '../../../../components/Card.js';
+import Button from '../../../../components/Button.js';
+import { useToast } from '../../../../components/ToastProvider.js';
 import { useTranslations } from 'next-intl';
 
 export default function ReportsPage() {
@@ -33,7 +33,7 @@ export default function ReportsPage() {
         queryParams.append('format', format);
 
         if (format === 'csv') {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://192.168.1.55:5500'}/api/admin/reports/users?${queryParams.toString()}`, {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'https://influencer-connect-ttvy.onrender.com'}/api/admin/reports/users?${queryParams.toString()}`, {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
             }
@@ -62,7 +62,7 @@ export default function ReportsPage() {
         queryParams.append('format', format);
 
         if (format === 'csv') {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://192.168.1.55:5500'}/api/admin/reports/activity?${queryParams.toString()}`, {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'https://influencer-connect-ttvy.onrender.com'}/api/admin/reports/activity?${queryParams.toString()}`, {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
             }

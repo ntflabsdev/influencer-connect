@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 
-const API_BASE = 'http://192.168.1.55:5500/api/admin';
+const API_BASE = 'https://influencer-connect-ttvy.onrender.com/api/admin';
 
 async function makeRequest(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;

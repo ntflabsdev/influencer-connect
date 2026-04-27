@@ -262,7 +262,7 @@ export default function BusinessesPage() {
       if (showPending) queryParams.append('status', 'adminpending');
       else queryParams.append('status', 'active');
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://192.168.1.55:5500'}/api/admin/export/users?${queryParams.toString()}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'https://influencer-connect-ttvy.onrender.com'}/api/admin/export/users?${queryParams.toString()}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
         }

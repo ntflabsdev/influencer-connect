@@ -1,6 +1,23 @@
 {
-  "/[locale]/page": "app/[locale]/page.js",
-  "/[locale]/dashboard/tickets/page": "app/[locale]/dashboard/tickets/page.js",
+  "/[locale]/dashboard/activity-logs/page": "app/[locale]/dashboard/activity-logs/page.js",
+  "/[locale]/dashboard/admins/page": "app/[locale]/dashboard/admins/page.js",
+  "/[locale]/dashboard/analytics/page": "app/[locale]/dashboard/analytics/page.js",
   "/[locale]/dashboard/businesses/page": "app/[locale]/dashboard/businesses/page.js",
-  "/[locale]/dashboard/page": "app/[locale]/dashboard/page.js"
+  "/[locale]/dashboard/content/page": "app/[locale]/dashboard/content/page.js",
+  "/[locale]/dashboard/disputes/page": "app/[locale]/dashboard/disputes/page.js",
+  "/[locale]/dashboard/influencers/page": "app/[locale]/dashboard/influencers/page.js",
+  "/[locale]/dashboard/kyc/page": "app/[locale]/dashboard/kyc/page.js",
+  "/[locale]/dashboard/notifications/page": "app/[locale]/dashboard/notifications/page.js",
+  "/[locale]/dashboard/offers/page": "app/[locale]/dashboard/offers/page.js",
+  "/[locale]/dashboard/page": "app/[locale]/dashboard/page.js",
+  "/[locale]/dashboard/payments/page": "app/[locale]/dashboard/payments/page.js",
+  "/[locale]/dashboard/reports/page": "app/[locale]/dashboard/reports/page.js",
+  "/[locale]/dashboard/settings/page": "app/[locale]/dashboard/settings/page.js",
+  "/[locale]/dashboard/stripe/page": "app/[locale]/dashboard/stripe/page.js",
+  "/[locale]/dashboard/subscriptions/page": "app/[locale]/dashboard/subscriptions/page.js",
+  "/[locale]/dashboard/tickets/page": "app/[locale]/dashboard/tickets/page.js",
+  "/[locale]/page": "app/[locale]/page.js",
+  "/[locale]/profile/page": "app/[locale]/profile/page.js",
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js"
 }
