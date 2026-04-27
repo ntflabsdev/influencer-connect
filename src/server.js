@@ -5,7 +5,7 @@ import { logger } from './utils/logger.js';
 
 const start = async () => {
   await connectDB();
-  app.listen(env.port, () => {
+  app.listen(env.port || 5500, () => {
     logger.info(`Server running on port ${env.port}`);
   });
 };
