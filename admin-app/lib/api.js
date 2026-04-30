@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://192.168.1.55:5500api se co';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://influencer-connect-ttvy.onrender.com';
 
 export const getToken = () => (typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null);
 

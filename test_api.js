@@ -1,4 +1,4 @@
-const API_BASE = "http://192.168.1.55:5500";
+const API_BASE = "https://influencer-connect-ttvy.onrender.com";
 
 async function testApi() {
   console.log("Testing API call to:", API_BASE);
@@ -8,7 +8,7 @@ async function testApi() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Origin": "http://192.168.1.55:3001"
+        "Origin": "https://influencer-connect-admin.vercel.app"
       },
       body: JSON.stringify({
         email: "admin@test.com",

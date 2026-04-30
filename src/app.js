@@ -30,7 +30,7 @@ const allowedOrigins = [
   env.clientUrl,
   'http://localhost:3001',
   'http://127.0.0.1:3001',
-  'http://192.168.1.55:3001',
+  "https://influencer-connect-admin.vercel.app"
 ];
 console.log('CORS allowed origins:', allowedOrigins);
 app.use(
