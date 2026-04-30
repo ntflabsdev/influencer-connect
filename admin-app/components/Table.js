@@ -1,23 +1,28 @@
 export default function Table({ columns, data, empty }) {
-  if (!data?.length) return <p className="text-slate-600">{empty || 'No data.'}</p>;
+  if (!data?.length) {
+    return (
+      <div style={{ padding: '40px 20px', textAlign: 'center', color: '#9ca3af', fontSize: 14 }}>
+        {empty || 'No data found.'}
+      </div>
+    );
+  }
+
   return (
-    <div className="overflow-x-auto rounded border border-slate-200">
-      <table className="min-w-full divide-y divide-slate-200">
-        <thead className="bg-slate-50">
+    <div style={{ overflowX: 'auto', borderRadius: 12, border: '1px solid #e5e7eb' }}>
+      <table className="admin-table">
+        <thead>
           <tr>
             {columns.map((col) => (
-              <th key={col.key} className="px-4 py-2 text-left text-xs font-semibold text-slate-600">
-                {col.label}
-              </th>
+              <th key={col.key}>{col.label}</th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
-          {data.map((row) => (
-            <tr key={row._id || row.key}>
+        <tbody>
+          {data.map((row, i) => (
+            <tr key={row._id || row.id || row.key || i}>
               {columns.map((col) => (
-                <td key={col.key} className="px-4 py-2 text-sm">
-                  {col.render ? col.render(row) : row[col.key]}
+                <td key={col.key}>
+                  {col.render ? col.render(row) : row[col.key] ?? '—'}
                 </td>
               ))}
             </tr>
@@ -27,7 +32,3 @@ export default function Table({ columns, data, empty }) {
     </div>
   );
 }
-
-
-
-

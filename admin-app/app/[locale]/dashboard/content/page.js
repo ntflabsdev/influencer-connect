@@ -1,691 +1,265 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { adminApi } from '../../../../lib/api.js';
-import Card from '../../../../components/Card.js';
-import Button from '../../../../components/Button.js';
 import Badge from '../../../../components/Badge.js';
+import Button from '../../../../components/Button.js';
+import { useToast } from '../../../../components/ToastProvider.js';
+import { StatCard, GradientCard, softBlueColors } from '../../../../components/DesignSystem.js';
+
+const DUMMY_SUBMISSIONS = [
+  { _id: 's1', offer: 'Earbuds Launch Campaign', influencer: 'Rahul Verma', caption: 'Just unboxed the new boAt Airdopes! 🔥 Incredible sound quality and 40hr battery life...', assetUrl: 'https://picsum.photos/400/300?random=1', status: 'pending', priority: 'normal', aiScore: 0.12, aiFlags: [], createdAt: '2026-06-11T09:00:00Z' },
+  { _id: 's2', offer: 'Monsoon Fashion Campaign', influencer: 'Priya Sharma', caption: 'Obsessed with this monsoon collection from Mamaearth! Perfect for the rainy season ☔', assetUrl: 'https://picsum.photos/400/300?random=2', status: 'pending', priority: 'normal', aiScore: 0.08, aiFlags: [], createdAt: '2026-06-11T08:30:00Z' },
+  { _id: 's3', offer: 'Fitness App Promotion', influencer: 'Anjali Singh', caption: 'This Cult.fit app completely changed my workout routine! Download link in bio 💪', assetUrl: 'https://picsum.photos/400/300?random=3', status: 'pending', priority: 'urgent', aiScore: 0.71, aiFlags: [{ type: 'misleading_claims', confidence: 0.71 }], createdAt: '2026-06-10T16:00:00Z' },
+  { _id: 's4', offer: 'Biryani Festival Review', influencer: 'Vikram Patel', caption: 'Honest review of Swiggy Biryani Festival — tried 5 different biryanis! 🍛', assetUrl: 'https://picsum.photos/400/300?random=4', status: 'approved', priority: 'normal', aiScore: 0.05, aiFlags: [], createdAt: '2026-06-10T14:00:00Z' },
+  { _id: 's5', offer: 'Navratri Beauty Collection', influencer: 'Neha Gupta', caption: 'My Navratri makeup routine featuring Nykaa new collection ✨', assetUrl: 'https://picsum.photos/400/300?random=5', status: 'pending', priority: 'normal', aiScore: 0.15, aiFlags: [], createdAt: '2026-06-11T07:00:00Z' },
+];
+
+const DUMMY_FLAGGED = [
+  { _id: 'f1', offer: 'Crypto Investment Promo', influencer: 'Unknown Creator', caption: '10x returns guaranteed on crypto! 🚀 DM me for details — limited slots!', assetUrl: 'https://picsum.photos/400/300?random=6', status: 'pending', aiScore: 0.94, aiFlags: [{ type: 'financial_fraud', confidence: 0.94 }, { type: 'misleading_claims', confidence: 0.87 }], createdAt: '2026-06-11T06:00:00Z' },
+  { _id: 'f2', offer: 'Weight Loss Product', influencer: 'FitInfluencer99', caption: 'Lost 15kg in 2 weeks with this miracle product! No diet needed!', assetUrl: 'https://picsum.photos/400/300?random=7', status: 'pending', aiScore: 0.88, aiFlags: [{ type: 'health_misinformation', confidence: 0.88 }, { type: 'misleading_claims', confidence: 0.82 }], createdAt: '2026-06-10T20:00:00Z' },
+  { _id: 'f3', offer: 'Fitness App Promotion', influencer: 'Anjali Singh', caption: 'This app completely changed my workout routine!', assetUrl: 'https://picsum.photos/400/300?random=3', status: 'pending', aiScore: 0.71, aiFlags: [{ type: 'misleading_claims', confidence: 0.71 }], createdAt: '2026-06-10T16:00:00Z' },
+];
+
+const RISK_COLOR = (score) => score >= 0.8 ? { bg: '#fee2e2', color: '#dc2626', label: 'High Risk' } : score >= 0.6 ? { bg: '#fef3c7', color: '#d97706', label: 'Medium Risk' } : { bg: '#dcfce7', color: '#059669', label: 'Safe' };
 
 export default function ContentModerationPage() {
-  const [submissions, setSubmissions] = useState([]);
-  const [flaggedSubmissions, setFlaggedSubmissions] = useState([]);
-  const [selectedSubmissions, setSelectedSubmissions] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [submissions, setSubmissions] = useState(DUMMY_SUBMISSIONS);
+  const [flagged, setFlagged] = useState(DUMMY_FLAGGED);
   const [activeTab, setActiveTab] = useState('pending');
-  const [qualityAnalytics, setQualityAnalytics] = useState(null);
-  const [selectedSubmission, setSelectedSubmission] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const { push } = useToast();
+
+  const pending = submissions.filter(s => s.status === 'pending');
+
+  const reviewSubmission = (id, status, list, setList) => {
+    setList(prev => prev.map(s => s._id === id ? { ...s, status } : s));
+    if (selected?._id === id) setSelected(null);
+    push(`Content ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'changes requested'}`, status === 'approved' ? 'success' : 'warning');
+  };
 
   const tabs = [
-    { id: 'pending', label: 'Pending Review', count: submissions.filter(s => s.status === 'pending').length },
-    { id: 'flagged', label: 'AI Flagged', count: flaggedSubmissions.length },
-    { id: 'analytics', label: 'Quality Analytics' }
+    { id: 'pending', label: '📋 Pending Review', count: pending.length },
+    { id: 'flagged', label: '🚩 AI Flagged', count: flagged.length },
+    { id: 'analytics', label: '📊 Analytics' },
   ];
 
-  useEffect(() => {
-    loadData();
-  }, [activeTab]);
-
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      if (activeTab === 'pending') {
-        const data = await adminApi('/submissions?status=pending&limit=50');
-        setSubmissions(data.submissions || []);
-      } else if (activeTab === 'flagged') {
-        const data = await adminApi('/content/flagged');
-        setFlaggedSubmissions(data.submissions || []);
-      } else if (activeTab === 'analytics') {
-        const data = await adminApi('/content/analytics/quality?period=30d');
-        setQualityAnalytics(data);
-      }
-    } catch (error) {
-      console.error('Failed to load data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const analyzeWithAI = async (submissionId) => {
-    try {
-      const data = await adminApi(`/content/analyze/${submissionId}`, { method: 'POST' });
-      // Update the submission in the list
-      setSubmissions(prev => prev.map(s =>
-        s._id === submissionId ? data.submission : s
-      ));
-      setFlaggedSubmissions(prev => prev.map(s =>
-        s._id === submissionId ? data.submission : s
-      ));
-    } catch (error) {
-      console.error('AI analysis failed:', error);
-    }
-  };
-
-  const bulkAnalyzeAI = async () => {
-    if (selectedSubmissions.length === 0) return;
-
-    try {
-      await adminApi('/content/bulk-analyze', {
-        method: 'POST',
-        body: { submissionIds: selectedSubmissions }
-      });
-      loadData();
-      setSelectedSubmissions([]);
-    } catch (error) {
-      console.error('Bulk AI analysis failed:', error);
-    }
-  };
-
-  const bulkModerate = async (action, feedback = '') => {
-    if (selectedSubmissions.length === 0) return;
-
-    try {
-      await adminApi('/content/bulk-moderate', {
-        method: 'POST',
-        body: {
-          submissionIds: selectedSubmissions,
-          action,
-          feedback
-        }
-      });
-      loadData();
-      setSelectedSubmissions([]);
-    } catch (error) {
-      console.error('Bulk moderation failed:', error);
-    }
-  };
-
-  const reviewSubmission = async (submissionId, status, feedback = '') => {
-    try {
-      await adminApi(`/submissions/${submissionId}`, {
-        method: 'PATCH',
-        body: { status, feedback }
-      });
-      loadData();
-      if (selectedSubmission?._id === submissionId) {
-        setSelectedSubmission(null);
-      }
-    } catch (error) {
-      console.error('Review failed:', error);
-    }
-  };
-
-  const toggleSelection = (submissionId) => {
-    setSelectedSubmissions(prev =>
-      prev.includes(submissionId)
-        ? prev.filter(id => id !== submissionId)
-        : [...prev, submissionId]
-    );
-  };
-
-  const toggleAll = () => {
-    const currentList = activeTab === 'pending' ? submissions : flaggedSubmissions;
-    const allIds = currentList.map(s => s._id);
-
-    if (selectedSubmissions.length === currentList.length) {
-      setSelectedSubmissions([]);
-    } else {
-      setSelectedSubmissions(allIds);
-    }
-  };
-
-  const getRiskBadgeColor = (score) => {
-    if (score >= 0.8) return 'danger';
-    if (score >= 0.6) return 'warning';
-    if (score >= 0.4) return 'info';
-    return 'success';
-  };
-
-  const getRiskLabel = (score) => {
-    if (score >= 0.8) return 'High Risk';
-    if (score >= 0.6) return 'Medium Risk';
-    if (score >= 0.4) return 'Low Risk';
-    return 'Safe';
-  };
-
-  const renderPendingTab = () => (
-    <div className="space-y-4">
-      {/* Bulk Actions */}
-      {selectedSubmissions.length > 0 && (
-        <Card className="p-4 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                {selectedSubmissions.length} submission{selectedSubmissions.length > 1 ? 's' : ''} selected
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={bulkAnalyzeAI}
-              >
-                Analyze with AI
-              </Button>
-              <Button
-                variant="success"
-                size="sm"
-                onClick={() => bulkModerate('approve', 'Bulk approved by admin')}
-              >
-                Bulk Approve
-              </Button>
-              <Button
-                variant="warning"
-                size="sm"
-                onClick={() => bulkModerate('request_changes', 'Changes requested via bulk action')}
-              >
-                Request Changes
-              </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={() => bulkModerate('reject', 'Rejected via bulk action')}
-              >
-                Bulk Reject
-              </Button>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Submissions List */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Pending Content Submissions</h3>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={selectedSubmissions.length === submissions.length && submissions.length > 0}
-              onChange={toggleAll}
-              className="rounded"
-            />
-            <span className="text-sm text-slate-600 dark:text-slate-400">Select All</span>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="text-center py-8">Loading submissions...</div>
-        ) : submissions.length === 0 ? (
-          <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-            No pending submissions
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {submissions.map((submission) => (
-              <div key={submission._id} className="border border-slate-200 dark:border-slate-700 rounded-lg p-4">
-                <div className="flex items-start gap-4">
-                  <input
-                    type="checkbox"
-                    checked={selectedSubmissions.includes(submission._id)}
-                    onChange={() => toggleSelection(submission._id)}
-                    className="mt-1"
-                  />
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="warning">Pending</Badge>
-                        {submission.aiModeration?.score && (
-                          <Badge variant={getRiskBadgeColor(submission.aiModeration.score)}>
-                            {getRiskLabel(submission.aiModeration.score)}
-                          </Badge>
-                        )}
-                        {submission.priority && submission.priority !== 'normal' && (
-                          <Badge variant={submission.priority === 'urgent' ? 'danger' : 'warning'}>
-                            {submission.priority.toUpperCase()}
-                          </Badge>
-                        )}
-                      </div>
-                      <span className="text-sm text-slate-500 dark:text-slate-400">
-                        {new Date(submission.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                      <div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                          {submission.application?.offer?.title || 'Offer'}
-                        </p>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                          by {submission.application?.influencer?.name || 'Unknown Influencer'}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
-                          {submission.caption || 'No caption'}
-                        </p>
-                        <a
-                          href={submission.assetUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:text-blue-700"
-                        >
-                          View Content →
-                        </a>
-                      </div>
-                    </div>
-
-                    {/* AI Flags */}
-                    {submission.aiModeration?.flags?.length > 0 && (
-                      <div className="mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                        <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-2">
-                          AI Flags Detected:
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {submission.aiModeration.flags.map((flag, index) => (
-                            <Badge key={index} variant="warning" className="text-xs">
-                              {flag.type}: {(flag.confidence * 100).toFixed(0)}%
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex gap-2">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => analyzeWithAI(submission._id)}
-                        disabled={submission.aiModeration?.processedAt}
-                      >
-                        {submission.aiModeration?.processedAt ? 'AI Analyzed' : 'Analyze AI'}
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => setSelectedSubmission(submission)}
-                      >
-                        Review
-                      </Button>
-                      <Button
-                        variant="success"
-                        size="sm"
-                        onClick={() => reviewSubmission(submission._id, 'approved', 'Approved by admin')}
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        variant="warning"
-                        size="sm"
-                        onClick={() => reviewSubmission(submission._id, 'changes_requested', 'Changes requested')}
-                      >
-                        Request Changes
-                      </Button>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => reviewSubmission(submission._id, 'rejected', 'Rejected by admin')}
-                      >
-                        Reject
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
-    </div>
-  );
-
-  const renderFlaggedTab = () => (
-    <div className="space-y-4">
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">AI Flagged Content</h3>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={selectedSubmissions.length === flaggedSubmissions.length && flaggedSubmissions.length > 0}
-              onChange={toggleAll}
-              className="rounded"
-            />
-            <span className="text-sm text-slate-600 dark:text-slate-400">Select All</span>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="text-center py-8">Loading flagged submissions...</div>
-        ) : flaggedSubmissions.length === 0 ? (
-          <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-            No AI flagged content
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {flaggedSubmissions.map((submission) => (
-              <div key={submission._id} className="border border-red-200 dark:border-red-800 rounded-lg p-4 bg-red-50 dark:bg-red-900/10">
-                <div className="flex items-start gap-4">
-                  <input
-                    type="checkbox"
-                    checked={selectedSubmissions.includes(submission._id)}
-                    onChange={() => toggleSelection(submission._id)}
-                    className="mt-1"
-                  />
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="danger">
-                          Risk Score: {(submission.aiModeration.score * 100).toFixed(0)}%
-                        </Badge>
-                        <Badge variant="warning">Flagged</Badge>
-                      </div>
-                      <span className="text-sm text-slate-500 dark:text-slate-400">
-                        {new Date(submission.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                      <div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                          {submission.application?.offer?.title || 'Offer'}
-                        </p>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                          by {submission.application?.influencer?.name || 'Unknown Influencer'}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
-                          {submission.caption || 'No caption'}
-                        </p>
-                        <a
-                          href={submission.assetUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:text-blue-700"
-                        >
-                          View Content →
-                        </a>
-                      </div>
-                    </div>
-
-                    {/* AI Flags Details */}
-                    <div className="mb-3 p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                      <p className="text-sm font-medium text-red-800 dark:text-red-200 mb-2">
-                        AI Detection Results:
-                      </p>
-                      <div className="space-y-1">
-                        {submission.aiModeration.flags.map((flag, index) => (
-                          <div key={index} className="flex items-center justify-between text-sm">
-                            <span className="text-red-700 dark:text-red-300">{flag.type}</span>
-                            <span className="text-red-600 dark:text-red-400">
-                              {(flag.confidence * 100).toFixed(0)}% confidence
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => setSelectedSubmission(submission)}
-                      >
-                        Review Details
-                      </Button>
-                      <Button
-                        variant="success"
-                        size="sm"
-                        onClick={() => reviewSubmission(submission._id, 'approved', 'Manually approved despite AI flags')}
-                      >
-                        Override Approve
-                      </Button>
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        onClick={() => reviewSubmission(submission._id, 'rejected', 'Rejected based on AI analysis')}
-                      >
-                        Reject
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
-    </div>
-  );
-
-  const renderAnalyticsTab = () => (
-    <div className="space-y-6">
-      {qualityAnalytics ? (
-        <>
-          {/* Quality Metrics Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                  <span className="text-xl">📊</span>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">Total Submissions</p>
-                  <p className="text-2xl font-bold">{qualityAnalytics.qualityMetrics.totalSubmissions}</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                  <span className="text-xl">⭐</span>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">Avg Quality Score</p>
-                  <p className="text-2xl font-bold">{qualityAnalytics.qualityMetrics.avgOverall?.toFixed(1) || 0}</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                  <span className="text-xl">🤖</span>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">AI Analyzed</p>
-                  <p className="text-2xl font-bold">{qualityAnalytics.moderationStats?.find(s => s._id === 'pending')?.count || 0}</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                  <span className="text-xl">⚠️</span>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">Flagged Content</p>
-                  <p className="text-2xl font-bold text-orange-600">{qualityAnalytics.aiFlaggingTrends?.reduce((sum, t) => sum + (t.highRiskCount || 0), 0) || 0}</p>
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          {/* Moderation Status Breakdown */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Content Moderation Status</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {qualityAnalytics.moderationStats?.map((status) => (
-                <div key={status._id} className="text-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                  <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{status.count}</p>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 capitalize">{status._id}</p>
-                </div>
-              ))}
-            </div>
-          </Card>
-
-          {/* AI Flagging Trends */}
-          {qualityAnalytics.aiFlaggingTrends?.length > 0 && (
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">AI Flagging Trends</h3>
-              <div className="space-y-3">
-                {qualityAnalytics.aiFlaggingTrends.slice(0, 7).map((trend, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-                    <span className="text-sm text-slate-600 dark:text-slate-400">
-                      {new Date(trend._id).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </span>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm text-slate-900 dark:text-slate-100">
-                        Risk: {(trend.avgRiskScore * 100).toFixed(0)}%
-                      </span>
-                      <Badge variant={trend.highRiskCount > 0 ? 'danger' : 'success'}>
-                        {trend.highRiskCount} high risk
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
-        </>
-      ) : (
-        <Card className="p-12">
-          <div className="text-center">
-            <div className="text-6xl mb-4">📊</div>
-            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">
-              No analytics data available
-            </h3>
-            <p className="text-slate-500 dark:text-slate-400">
-              Quality analytics will appear once content submissions are processed.
-            </p>
-          </div>
-        </Card>
-      )}
-    </div>
-  );
-
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Content Moderation</h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
-            AI-powered content review and quality control
-          </p>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827' }}>📝 Content Moderation</h1>
+          <p style={{ fontSize: 13, color: '#6b7280', marginTop: 3 }}>Review, approve and moderate influencer content submissions</p>
         </div>
-        <Button variant="primary" onClick={loadData} disabled={loading}>
-          {loading ? 'Refreshing...' : 'Refresh'}
-        </Button>
+        <button onClick={() => push('Refreshed', 'success')}
+          style={{ padding: '8px 16px', borderRadius: 9, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          🔄 Refresh
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14 }}>
+        {[
+          { label: 'Pending Review', value: pending.length, icon: '⏳', bg: '#fef9c3', color: '#d97706' },
+          { label: 'AI Flagged', value: flagged.length, icon: '⚠️', bg: '#fee2e2', color: '#dc2626' },
+          { label: 'Approved Today', value: 24, icon: '✅', bg: '#dcfce7', color: '#059669' },
+          { label: 'Quality Score', value: '94.2%', icon: '⭐', bg: '#e0f2fe', color: '#0ea5e9' },
+        ].map(s => (
+          <div key={s.label} style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>{s.icon}</div>
+              <div>
+                <p style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500 }}>{s.label}</p>
+                <p style={{ fontSize: 18, fontWeight: 700, color: '#111827' }}>{s.value}</p>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${
-              activeTab === tab.id
-                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-            }`}
-          >
+      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 6, display: 'flex', gap: 4 }}>
+        {tabs.map(tab => (
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+            style={{ flex: 1, padding: '10px 16px', borderRadius: 10, border: 'none', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: activeTab === tab.id ? 'linear-gradient(135deg, #4f46e5, #7c3aed)' : 'transparent', color: activeTab === tab.id ? '#fff' : '#6b7280' }}>
             {tab.label}
             {tab.count !== undefined && tab.count > 0 && (
-              <Badge variant={tab.id === 'flagged' ? 'danger' : 'warning'} className="ml-2">
+              <span style={{ background: activeTab === tab.id ? 'rgba(255,255,255,0.2)' : '#f3f4f6', color: activeTab === tab.id ? '#fff' : '#374151', borderRadius: 20, padding: '1px 8px', fontSize: 11, fontWeight: 700 }}>
                 {tab.count}
-              </Badge>
+              </span>
             )}
           </button>
         ))}
       </div>
 
-      {/* Tab Content */}
-      {activeTab === 'pending' && renderPendingTab()}
-      {activeTab === 'flagged' && renderFlaggedTab()}
-      {activeTab === 'analytics' && renderAnalyticsTab()}
-
-      {/* Submission Detail Modal */}
-      {selectedSubmission && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Content Review</h2>
-                <button
-                  onClick={() => setSelectedSubmission(null)}
-                  className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold text-lg">{selectedSubmission.application?.offer?.title}</h3>
-                  <p className="text-slate-600 dark:text-slate-400">
-                    by {selectedSubmission.application?.influencer?.name}
-                  </p>
-                </div>
-
-                <div>
-                  <img
-                    src={selectedSubmission.assetUrl}
-                    alt="Content"
-                    className="w-full max-h-96 object-cover rounded-lg"
-                  />
-                </div>
-
-                {selectedSubmission.caption && (
-                  <div>
-                    <h4 className="font-medium mb-2">Caption</h4>
-                    <p className="text-slate-600 dark:text-slate-400">{selectedSubmission.caption}</p>
+      {/* Pending Tab */}
+      {activeTab === 'pending' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {pending.length === 0 ? (
+            <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', padding: 48, textAlign: 'center' }}>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
+              <p style={{ fontSize: 16, fontWeight: 600, color: '#111827' }}>All caught up!</p>
+              <p style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>No pending content submissions</p>
+            </div>
+          ) : pending.map(sub => {
+            const risk = RISK_COLOR(sub.aiScore);
+            return (
+              <div key={sub._id} style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', padding: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
+                  <img src={sub.assetUrl} alt="content" style={{ width: 80, height: 80, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} onError={e => { e.target.style.display = 'none'; }} />
+                  <div style={{ flex: 1, minWidth: 200 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{sub.offer}</h3>
+                      <span style={{ background: risk.bg, color: risk.color, borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 600 }}>{risk.label}</span>
+                      {sub.priority === 'urgent' && <span style={{ background: '#fee2e2', color: '#dc2626', borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 700 }}>🔴 Urgent</span>}
+                    </div>
+                    <p style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>by <strong style={{ color: '#374151' }}>{sub.influencer}</strong></p>
+                    <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.5, marginBottom: 8 }}>{sub.caption}</p>
+                    {sub.aiFlags.length > 0 && (
+                      <div style={{ background: '#fef9c3', borderRadius: 8, padding: '8px 12px', marginBottom: 8 }}>
+                        <p style={{ fontSize: 11, color: '#854d0e', fontWeight: 600, marginBottom: 4 }}>⚠️ AI Flags:</p>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                          {sub.aiFlags.map((f, i) => (
+                            <span key={i} style={{ background: '#fef3c7', color: '#92400e', borderRadius: 6, padding: '2px 8px', fontSize: 11, fontWeight: 600 }}>
+                              {f.type.replace(/_/g, ' ')} ({(f.confidence * 100).toFixed(0)}%)
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
+                    <button onClick={() => setSelected(sub)}
+                      style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                      Review
+                    </button>
+                    <button onClick={() => reviewSubmission(sub._id, 'approved', submissions, setSubmissions)}
+                      style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: '#059669', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                      ✓ Approve
+                    </button>
+                    <button onClick={() => reviewSubmission(sub._id, 'rejected', submissions, setSubmissions)}
+                      style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: '#dc2626', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                      ✕ Reject
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-                {selectedSubmission.aiModeration?.flags?.length > 0 && (
-                  <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                    <h4 className="font-medium mb-2 text-yellow-800 dark:text-yellow-200">AI Analysis</h4>
-                    <div className="space-y-2">
-                      {selectedSubmission.aiModeration.flags.map((flag, index) => (
-                        <div key={index} className="flex items-center justify-between">
-                          <span className="text-yellow-700 dark:text-yellow-300">{flag.type}</span>
-                          <Badge variant="warning">
-                            {(flag.confidence * 100).toFixed(0)}% confidence
-                          </Badge>
+      {/* Flagged Tab */}
+      {activeTab === 'flagged' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {flagged.map(sub => (
+            <div key={sub._id} style={{ background: '#fff', borderRadius: 16, border: '2px solid #fee2e2', padding: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
+                <img src={sub.assetUrl} alt="content" style={{ width: 80, height: 80, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} onError={e => { e.target.style.display = 'none'; }} />
+                <div style={{ flex: 1, minWidth: 200 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <h3 style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{sub.offer}</h3>
+                    <span style={{ background: '#fee2e2', color: '#dc2626', borderRadius: 20, padding: '2px 10px', fontSize: 11, fontWeight: 700 }}>
+                      Risk: {(sub.aiScore * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                  <p style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>by <strong style={{ color: '#374151' }}>{sub.influencer}</strong></p>
+                  <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.5, marginBottom: 10 }}>{sub.caption}</p>
+                  <div style={{ background: '#fee2e2', borderRadius: 8, padding: '10px 12px' }}>
+                    <p style={{ fontSize: 11, color: '#991b1b', fontWeight: 600, marginBottom: 6 }}>🤖 AI Detection Results:</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      {sub.aiFlags.map((f, i) => (
+                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ fontSize: 12, color: '#991b1b' }}>{f.type.replace(/_/g, ' ')}</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: '#dc2626' }}>{(f.confidence * 100).toFixed(0)}% confidence</span>
                         </div>
                       ))}
                     </div>
                   </div>
-                )}
-
-                <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-                  <Button
-                    variant="success"
-                    onClick={() => reviewSubmission(selectedSubmission._id, 'approved')}
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    variant="warning"
-                    onClick={() => reviewSubmission(selectedSubmission._id, 'changes_requested')}
-                  >
-                    Request Changes
-                  </Button>
-                  <Button
-                    variant="danger"
-                    onClick={() => reviewSubmission(selectedSubmission._id, 'rejected')}
-                  >
-                    Reject
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => setSelectedSubmission(null)}
-                  >
-                    Close
-                  </Button>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
+                  <button onClick={() => reviewSubmission(sub._id, 'approved', flagged, setFlagged)}
+                    style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: '#059669', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                    Override ✓
+                  </button>
+                  <button onClick={() => reviewSubmission(sub._id, 'rejected', flagged, setFlagged)}
+                    style={{ padding: '7px 14px', borderRadius: 8, border: 'none', background: '#dc2626', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                    ✕ Reject
+                  </button>
                 </div>
               </div>
             </div>
-          </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Analytics Tab */}
+      {activeTab === 'analytics' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14 }}>
+            {[
+              { label: 'Total Submissions', value: '1,284', icon: '📊', bg: '#e0f2fe', color: '#0ea5e9' },
+              { label: 'Avg Quality Score', value: '8.4/10', icon: '⭐', bg: '#dcfce7', color: '#059669' },
+              { label: 'AI Analyzed', value: '1,156', icon: '🤖', bg: '#ede9fe', color: '#7c3aed' },
+              { label: 'High Risk Flagged', value: '23', icon: '⚠️', bg: '#fee2e2', color: '#dc2626' },
+            ].map(s => (
+              <div key={s.label} style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 10, background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>{s.icon}</div>
+                  <div>
+                    <p style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500 }}>{s.label}</p>
+                    <p style={{ fontSize: 18, fontWeight: 700, color: '#111827' }}>{s.value}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', padding: 24 }}>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 16 }}>Moderation Status Breakdown</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 12 }}>
+              {[
+                { label: 'Approved', count: 847, color: '#059669', bg: '#dcfce7' },
+                { label: 'Pending', count: 156, color: '#d97706', bg: '#fef9c3' },
+                { label: 'Rejected', count: 189, color: '#dc2626', bg: '#fee2e2' },
+                { label: 'Changes Req.', count: 92, color: '#7c3aed', bg: '#ede9fe' },
+              ].map(s => (
+                <div key={s.label} style={{ background: s.bg, borderRadius: 10, padding: '14px', textAlign: 'center' }}>
+                  <p style={{ fontSize: 24, fontWeight: 700, color: s.color }}>{s.count}</p>
+                  <p style={{ fontSize: 12, color: '#374151', marginTop: 4 }}>{s.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Detail Modal */}
+      {selected && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, zIndex: 9999 }}>
+          <div style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', padding: 28 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <h2 style={{ fontSize: 17, fontWeight: 700, color: '#111827' }}>Content Review</h2>
+              <button onClick={() => setSelected(null)} style={{ width: 32, height: 32, borderRadius: 8, border: 'none', background: '#f3f4f6', cursor: 'pointer', fontSize: 16 }}>✕</button>
+            </div>
+            <img src={selected.assetUrl} alt="content" style={{ width: '100%', borderRadius: 12, marginBottom: 16, maxHeight: 300, objectFit: 'cover' }} />
+            <div style={{ marginBottom: 14 }}>
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 4 }}>{selected.offer}</p>
+              <p style={{ fontSize: 12, color: '#6b7280' }}>by {selected.influencer}</p>
+            </div>
+            <div style={{ background: '#f9fafb', borderRadius: 10, padding: 12, marginBottom: 16 }}>
+              <p style={{ fontSize: 12, color: '#374151', lineHeight: 1.6 }}>{selected.caption}</p>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setSelected(null)} style={{ flex: 1, padding: '10px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Close</button>
+              <button onClick={() => { reviewSubmission(selected._id, 'approved', submissions, setSubmissions); setSelected(null); }}
+                style={{ flex: 1, padding: '10px', borderRadius: 10, border: 'none', background: '#059669', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>✓ Approve</button>
+              <button onClick={() => { reviewSubmission(selected._id, 'rejected', submissions, setSubmissions); setSelected(null); }}
+                style={{ flex: 1, padding: '10px', borderRadius: 10, border: 'none', background: '#dc2626', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>✕ Reject</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

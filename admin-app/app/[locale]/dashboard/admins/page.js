@@ -6,12 +6,25 @@ import Card from '../../../../components/Card.js';
 import Button from '../../../../components/Button.js';
 import Badge from '../../../../components/Badge.js';
 import { useTranslations } from 'next-intl';
+import { 
+  StatCard, 
+  GradientCard, 
+  GlassCard, 
+  ActivityItem, 
+  ProgressRing,
+  QuickAction,
+  StatusIndicator,
+  softBlueColors,
+  softBlueGradients
+} from '../../../../components/DesignSystem.js';
+import AdminDrawer from '../../../../components/AdminDrawer.js';
 
 export default function AdminsManagementPage() {
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedAdmin, setSelectedAdmin] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showAdminDrawer, setShowAdminDrawer] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [pagination, setPagination] = useState(null);
   const [filters, setFilters] = useState({
@@ -210,12 +223,12 @@ export default function AdminsManagementPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <div className="flex flex-col gap-8">
+      {/* ── Header with Stats ── */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">{t('title')}</h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">{t('subtitle')}</p>
+          <h1 className="text-3xl font-bold text-gray-900">👑 {t('title')}</h1>
+          <p className="text-gray-600 mt-1">{t('subtitle')}</p>
         </div>
         <div className="flex gap-3">
           <Button
@@ -223,129 +236,183 @@ export default function AdminsManagementPage() {
             onClick={loadAdmins}
             disabled={loading}
           >
-            {loading ? t('refreshing') : t('refresh')}
+            {loading ? '🔄 Refreshing...' : '🔄 Refresh'}
           </Button>
           <Button
-            onClick={() => setShowCreateModal(true)}
-            className="bg-blue-600 hover:bg-blue-700"
+            onClick={() => setShowAdminDrawer(true)}
+            className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700"
           >
-            {t('addNew')}
+            ➕ {t('addNew')}
           </Button>
         </div>
       </div>
 
-      {/* Filters */}
-      <Card className="p-4">
-        <div className="flex flex-wrap gap-4 items-center">
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('filters.role')}:</label>
+    
+      {/* ── Quick Stats ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard
+          title={t('stats.totalAdmins')}
+          value={admins.length}
+          subtitle={t('stats.activeTeam')}
+          icon="👥"
+          accent={softBlueColors.primary}
+          accentBg={softBlueColors.primaryLight}
+        />
+        <StatCard
+          title={t('stats.superAdmins')}
+          value={admins.filter(a => a.role === 'superadmin').length}
+          subtitle={t('stats.fullAccess')}
+          icon="👑"
+          accent={softBlueColors.danger}
+          accentBg={softBlueColors.dangerLight}
+        />
+        <StatCard
+          title={t('stats.activeToday')}
+          value="12"
+          subtitle={t('stats.currentlyOnline')}
+          icon="✅"
+          accent={softBlueColors.success}
+          accentBg={softBlueColors.successLight}
+        />
+        <StatCard
+          title={t('stats.pendingInvites')}
+          value="3"
+          subtitle={t('stats.awaitingResponse')}
+          icon="📧"
+          accent={softBlueColors.warning}
+          accentBg={softBlueColors.warningLight}
+        />
+      </div>
+
+      {/* ── Modern Filters ── */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-6">
+        <div className="flex flex-wrap gap-6 items-center">
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium text-gray-700">🔍 {t('filters.role')}:</label>
             <select
               value={filters.role}
               onChange={(e) => setFilters(prev => ({ ...prev, role: e.target.value, page: 1 }))}
-              className="px-3 py-1 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-700"
+              className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
             >
               <option value="">{t('filters.allRoles')}</option>
-              <option value="superadmin">{t('roles.superadmin')}</option>
-              <option value="admin">{t('roles.admin')}</option>
-              <option value="moderator">{t('roles.moderator')}</option>
+              <option value="superadmin">👑 {t('roles.superadmin')}</option>
+              <option value="admin">👤 {t('roles.admin')}</option>
+              <option value="moderator">🛡️ {t('roles.moderator')}</option>
             </select>
           </div>
 
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">{t('filters.department')}:</label>
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium text-gray-700">🏢 {t('filters.department')}:</label>
             <select
               value={filters.department}
               onChange={(e) => setFilters(prev => ({ ...prev, department: e.target.value, page: 1 }))}
-              className="px-3 py-1 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-700"
+              className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
             >
               <option value="">{t('filters.allDepartments')}</option>
-              <option value="operations">{t('departments.operations')}</option>
-              <option value="finance">{t('departments.finance')}</option>
-              <option value="support">{t('departments.support')}</option>
-              <option value="moderation">{t('departments.moderation')}</option>
-              <option value="management">{t('departments.management')}</option>
+              <option value="operations">⚙️ {t('departments.operations')}</option>
+              <option value="finance">💰 {t('departments.finance')}</option>
+              <option value="support">💬 {t('departments.support')}</option>
+              <option value="moderation">📝 {t('departments.moderation')}</option>
+              <option value="management">📊 {t('departments.management')}</option>
             </select>
           </div>
         </div>
-      </Card>
+      </div>
 
-      {/* Admins List */}
-      <Card className="p-6">
+      {/* ── Admins List ── */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-6">
         {loading ? (
-          <div className="text-center py-8">{t('table.loading')}</div>
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="text-4xl mb-4">🔄</div>
+            <p className="text-gray-600">{t('table.loading')}</p>
+          </div>
         ) : admins.length === 0 ? (
-          <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-            {t('table.noAdmins')}
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="text-6xl mb-4">👑</div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('table.noAdminsFound')}</h3>
+            <p className="text-gray-600">{t('table.noAdmins')}</p>
           </div>
         ) : (
           <div className="space-y-4">
             {admins.map((admin) => (
-              <div key={admin._id} className="border border-slate-200 dark:border-slate-700 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+              <div key={admin._id} className="border border-gray-200 rounded-2xl p-6 hover:shadow-md transition-all">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
                       {admin.name?.charAt(0)?.toUpperCase() || 'A'}
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-slate-900 dark:text-slate-100">{admin.name}</h3>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">{admin.email}</p>
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <Badge variant={getRoleBadgeColor(admin.role)}>
-                          {admin.role?.toUpperCase()}
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-semibold text-gray-900 text-lg">{admin.name}</h3>
+                        <StatusIndicator 
+                          status={admin.isActive ? 'online' : 'offline'} 
+                          label={admin.isActive ? 'Active' : 'Inactive'} 
+                        />
+                      </div>
+                      <p className="text-sm text-gray-600 mb-3">{admin.email}</p>
+                      
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        <Badge variant={getRoleBadgeColor(admin.role)} className="px-3 py-1">
+                          {admin.role === 'superadmin' ? '👑' : admin.role === 'admin' ? '👤' : '🛡️'} {admin.role?.toUpperCase()}
                         </Badge>
                         {admin.department && (
-                          <Badge variant="secondary">{admin.department}</Badge>
-                        )}
-                        {!admin.isActive && (
-                          <Badge variant="danger">{t('table.inactive')}</Badge>
+                          <Badge variant="secondary" className="px-3 py-1">
+                            🏢 {admin.department}
+                          </Badge>
                         )}
                       </div>
+                      
                       {/* Permissions Display */}
                       {admin.permissions && (
-                        <div className="mt-2 flex flex-wrap gap-1">
+                        <div className="flex flex-wrap gap-2">
                           {admin.permissions.canManageInfluencers && (
-                            <span className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded">Influencers</span>
+                            <span className="text-xs px-3 py-1 bg-green-50 text-green-700 rounded-xl font-medium">👥 {t('permissions.influencers')}</span>
                           )}
                           {admin.permissions.canManageBusinesses && (
-                            <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded">Businesses</span>
+                            <span className="text-xs px-3 py-1 bg-blue-50 text-blue-700 rounded-xl font-medium">🏢 {t('permissions.businesses')}</span>
                           )}
                           {admin.permissions.canManageAdmins && (
-                            <span className="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded">Admins</span>
+                            <span className="text-xs px-3 py-1 bg-purple-50 text-purple-700 rounded-xl font-medium">👑 {t('permissions.admins')}</span>
                           )}
                           {admin.permissions.canModerateContent && (
-                            <span className="text-xs px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded">Content</span>
+                            <span className="text-xs px-3 py-1 bg-yellow-50 text-yellow-700 rounded-xl font-medium">📝 {t('permissions.content')}</span>
                           )}
                           {admin.permissions.canViewPayments && (
-                            <span className="text-xs px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded">Payments</span>
+                            <span className="text-xs px-3 py-1 bg-indigo-50 text-indigo-700 rounded-xl font-medium">💰 {t('permissions.payments')}</span>
                           )}
                           {admin.permissions.canManageSettings && (
-                            <span className="text-xs px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded">Settings</span>
+                            <span className="text-xs px-3 py-1 bg-red-50 text-red-700 rounded-xl font-medium">⚙️ {t('permissions.settings')}</span>
                           )}
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-slate-500 dark:text-slate-400">
-                      {t('table.joined')}: {formatDate(admin.createdAt)}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openEditModal(admin)}
-                    >
-                      {t('table.edit')}
-                    </Button>
-                    {admin.role !== 'superadmin' && (
+                  <div className="flex flex-col items-end gap-3">
+                    <div className="text-right">
+                      <p className="text-xs text-gray-500 mb-1">📅 {t('table.joined')}</p>
+                      <p className="text-sm text-gray-700">{formatDate(admin.createdAt)}</p>
+                    </div>
+                    <div className="flex gap-2">
                       <Button
-                        variant="danger"
+                        variant="ghost"
                         size="sm"
-                        onClick={() => handleDeleteAdmin(admin._id)}
+                        onClick={() => openEditModal(admin)}
+                        className="hover:bg-indigo-50 hover:text-indigo-600"
                       >
-                        {t('table.deactivate')}
+                        ✏️ {t('table.edit')}
                       </Button>
-                    )}
+                      {admin.role !== 'superadmin' && (
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => handleDeleteAdmin(admin._id)}
+                          className="hover:bg-red-50"
+                        >
+                          🚫 {t('table.deactivate')}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -386,104 +453,114 @@ export default function AdminsManagementPage() {
             )}
           </div>
         )}
-      </Card>
+      </div>
 
-      {/* Create Admin Modal */}
+      {/* ── Create Admin Modal ── */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{t('modals.createTitle')}</h2>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-8">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-3xl font-bold text-gray-900 mb-2">👑 {t('modals.createTitle')}</h2>
+                  <p className="text-gray-600">Add a new administrator to your team</p>
+                </div>
                 <button
                   onClick={() => {
                     setShowCreateModal(false);
                     resetForm();
                   }}
-                  className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                  className="w-10 h-10 rounded-xl hover:bg-gray-100 flex items-center justify-center transition-colors"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
 
               <form onSubmit={handleCreateAdmin} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      {t('modals.fullName')} *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    />
+                {/* ── Basic Information ── */}
+                <GradientCard className="p-6">
+                  <h3 className="text-lg font-semibold text-white mb-6">📝 Basic Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-2">
+                        👤 {t('modals.fullName')} *
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                        className="w-full px-4 py-3 border border-white/20 rounded-xl bg-white/20 backdrop-blur-sm text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40"
+                        placeholder="Enter full name"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-2">
+                        📧 {t('modals.email')} *
+                      </label>
+                      <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                        className="w-full px-4 py-3 border border-white/20 rounded-xl bg-white/20 backdrop-blur-sm text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40"
+                        placeholder="admin@example.com"
+                        required
+                      />
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      {t('modals.email')} *
-                    </label>
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                      className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
-                </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-2">
+                        🔐 {t('modals.password')} *
+                      </label>
+                      <input
+                        type="password"
+                        value={formData.password}
+                        onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                        className="w-full px-4 py-3 border border-white/20 rounded-xl bg-white/20 backdrop-blur-sm text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40"
+                        placeholder="Strong password"
+                        required
+                      />
+                    </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      {t('modals.password')} *
-                    </label>
-                    <input
-                      type="password"
-                      value={formData.password}
-                      onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                      className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    />
+                    <div>
+                      <label className="block text-sm font-medium text-white mb-2">
+                        👑 {t('modals.role')}
+                      </label>
+                      <select
+                        value={formData.role}
+                        onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
+                        className="w-full px-4 py-3 border border-white/20 rounded-xl bg-white/20 backdrop-blur-sm text-white focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40"
+                      >
+                        <option value="moderator">🛡️ {t('roles.moderator')}</option>
+                        <option value="admin">👤 {t('roles.admin')}</option>
+                        <option value="superadmin">👑 {t('roles.superadmin')}</option>
+                      </select>
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      {t('modals.role')}
+                  <div className="mt-6">
+                    <label className="block text-sm font-medium text-white mb-2">
+                      🏢 {t('modals.department')}
                     </label>
                     <select
-                      value={formData.role}
-                      onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
-                      className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={formData.department}
+                      onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
+                      className="w-full px-4 py-3 border border-white/20 rounded-xl bg-white/20 backdrop-blur-sm text-white focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/40"
                     >
-                      <option value="moderator">{t('roles.moderator')}</option>
-                      <option value="admin">{t('roles.admin')}</option>
-                      <option value="superadmin">{t('roles.superadmin')}</option>
+                      <option value="">{t('departments.selectDepartment')}</option>
+                      <option value="operations">⚙️ {t('departments.operations')}</option>
+                      <option value="finance">💰 {t('departments.finance')}</option>
+                      <option value="support">💬 {t('departments.support')}</option>
+                      <option value="moderation">📝 {t('departments.moderation')}</option>
+                      <option value="management">📊 {t('departments.management')}</option>
                     </select>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    {t('modals.department')}
-                  </label>
-                  <select
-                    value={formData.department}
-                    onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
-                    className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">{t('departments.selectDepartment')}</option>
-                    <option value="operations">{t('departments.operations')}</option>
-                    <option value="finance">{t('departments.finance')}</option>
-                    <option value="support">{t('departments.support')}</option>
-                    <option value="moderation">{t('departments.moderation')}</option>
-                    <option value="management">{t('departments.management')}</option>
-                  </select>
-                </div>
+                </GradientCard>
 
                 {/* Permissions Section */}
                 <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
@@ -1095,6 +1172,19 @@ export default function AdminsManagementPage() {
           </div>
         </div>
       )}
+
+      {/* ── Admin Drawer Component ── */}
+      <AdminDrawer
+        isOpen={showAdminDrawer}
+        onClose={() => setShowAdminDrawer(false)}
+        onSuccess={() => {
+          loadAdmins();
+          setShowAdminDrawer(false);
+        }}
+      />
+
+      {/* ── Floating Action Button ── */}
+    
     </div>
   );
 }

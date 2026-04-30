@@ -31,6 +31,23 @@
         "cancel": "Cancel",
         "showingDataFor": "Showing"
     },
+    "Sidebar": {
+        "groups": {
+            "overview": "Overview",
+            "users": "Users",
+            "operations": "Operations",
+            "finance": "Finance",
+            "system": "System"
+        }
+    },
+    "Notifications": {
+        "title": "Notifications",
+        "ariaLabel": "Notifications",
+        "markAllRead": "Mark all read",
+        "loading": "Loading...",
+        "noNotifications": "No notifications",
+        "viewAll": "View all notifications"
+    },
     "Dashboard": {
         "title": "Admin Dashboard",
         "stats": "Statistics"
@@ -68,6 +85,32 @@
         "totalCount": "Total Count",
         "dailyTrend": "Daily Applications (Last 14 Days)",
         "noDailyData": "No daily data available",
+        "stats": {
+            "totalRevenue": "Total Revenue",
+            "thisMonth": "This month",
+            "activeOffers": "Active Offers",
+            "liveCampaigns": "Live campaigns",
+            "applications": "Applications",
+            "successRate": "Success Rate",
+            "averageSuccess": "Average success",
+            "approvalRate": "Approval rate"
+        },
+        "performance": {
+            "title": "Performance Overview",
+            "conversionRate": "Conversion Rate",
+            "avgOrderValue": "Avg. Order Value",
+            "campaignROI": "Campaign ROI"
+        },
+        "charts": {
+            "revenueTrend": "Revenue Trend",
+            "userGrowth": "User Growth"
+        },
+        "actions": {
+            "exportReport": "Export Report",
+            "emailSummary": "Email Summary",
+            "refreshData": "Refresh Data",
+            "settings": "Settings"
+        },
         "unknown": "Unknown",
         "totalBusinesses": "Total Businesses",
         "activeBusinesses": "Active Businesses",
@@ -200,6 +243,11 @@
         "filters": {
             "placeholder": "Search offers...",
             "clear": "Clear Filters",
+            "status": "Status",
+            "allStatus": "All Status",
+            "flagged": "Flagged",
+            "flaggedOnly": "Flagged Only",
+            "notFlagged": "Not Flagged",
             "draft": "Draft",
             "open": "Open",
             "paused": "Paused",
@@ -290,6 +338,27 @@
         "noLogs": "No activity logs found",
         "target": "Target"
     },
+    "ContentModeration": {
+        "title": "Content Moderation",
+        "subtitle": "AI-powered content review and quality control",
+        "moderationStatus": "Content Moderation Status",
+        "tabs": {
+            "pending": "Pending Review",
+            "flagged": "AI Flagged",
+            "analytics": "Quality Analytics"
+        },
+        "stats": {
+            "pendingReview": "Pending Review",
+            "awaitingApproval": "Awaiting approval",
+            "aiFlagged": "AI Flagged",
+            "highRiskContent": "High risk content",
+            "approvedToday": "Approved Today",
+            "successfullyApproved": "Successfully approved",
+            "qualityScore": "Quality Score",
+            "averageQualityRating": "Average quality rating"
+        },
+        "noAnalyticsText": "Quality analytics will appear once content submissions are processed."
+    },
     "Reports": {
         "title": "Reports",
         "subtitle": "Generate and export platform reports",
@@ -299,6 +368,26 @@
         "generating": "Generating...",
         "generateJSON": "Generate JSON Report",
         "generateCSV": "Generate & Download CSV",
+        "stats": {
+            "reportsGenerated": "Reports Generated",
+            "thisMonth": "This month",
+            "userActivity": "User Activity",
+            "last7Days": "Last 7 days",
+            "systemHealth": "System Health",
+            "performanceScore": "Performance score",
+            "dataExported": "Data Exported",
+            "totalExports": "Total exports"
+        },
+        "actions": {
+            "generateJSON": "Generate JSON",
+            "exportCSV": "Export CSV",
+            "emailReport": "Email Report",
+            "settings": "Settings"
+        },
+        "charts": {
+            "reportTrends": "Report Generation Trends"
+        },
+        "recentReports": "Recent Reports",
         "toasts": {
             "count": "Report generated with {count} records"
         }
@@ -393,13 +482,32 @@
             "management": "Management",
             "selectDepartment": "Select Department"
         },
+        "stats": {
+            "totalAdmins": "Total Admins",
+            "activeTeam": "Active team members",
+            "superAdmins": "Super Admins",
+            "fullAccess": "Full access users",
+            "activeToday": "Active Today",
+            "currentlyOnline": "Currently online",
+            "pendingInvites": "Pending Invites",
+            "awaitingResponse": "Awaiting response"
+        },
+        "permissions": {
+            "influencers": "Influencers",
+            "businesses": "Businesses",
+            "admins": "Admins",
+            "content": "Content",
+            "payments": "Payments",
+            "settings": "Settings"
+        },
         "table": {
             "joined": "Joined",
             "edit": "Edit",
             "deactivate": "Deactivate",
             "inactive": "INACTIVE",
             "loading": "Loading admins...",
-            "noAdmins": "No admins found"
+            "noAdmins": "No admins found",
+            "noAdminsFound": "No Admins Found"
         },
         "modals": {
             "createTitle": "Create New Admin",
@@ -450,15 +558,24 @@
         }
     },
     "Login": {
-        "title": "Admin Dashboard Access",
-        "subtext": "Secure admin access to manage your platform",
+        "brand": {
+            "name": "Influencer Connect",
+            "description": "Manage your influencer platform with full control and real-time insights."
+        },
+        "features": {
+            "analytics": "Real-time analytics dashboard",
+            "management": "Manage influencers & businesses",
+            "security": "Secure admin access control"
+        },
+        "welcome": "Welcome back",
         "emailLabel": "Email Address",
         "emailPlaceholder": "Enter your email",
         "passwordLabel": "Password",
         "passwordPlaceholder": "Enter your password",
         "button": "Sign In",
-        "buttonLoading": "Signing In...",
-        "footer": "Secure admin access to manage your platform"
+        "buttonLoading": "Signing in...",
+        "subtext": "Enter your credentials to access your account",
+        "footer": "Secure access to manage your platform"
     },
     "Toasts": {
         "loginFirst": "Please login first",

@@ -1,15 +1,18 @@
 import createMiddleware from 'next-intl/middleware';
 
 export default createMiddleware({
-    // A list of all locales that are supported
-    locales: ['en', 'es'],
+  // Supported locales
+  locales: ['en', 'es'],
 
-    // Used when no locale matches
-    defaultLocale: 'en'
+  // Default locale — used when no locale matches
+  defaultLocale: 'en',
+
+  // Only add locale prefix when it's not the default locale
+  // This allows /auth/business to work without /en/auth/business
+  localePrefix: 'as-needed'
 });
 
 export const config = {
-    // Match only internationalized pathnames
-    // Skip all internal Next.js paths and static files
-    matcher: ['/((?!api|_next|_vercel|.*\\..*).*)']
+  // Match all routes except Next.js internals and static files
+  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)']
 };

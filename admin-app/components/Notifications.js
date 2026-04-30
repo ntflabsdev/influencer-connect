@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '../lib/api.js';
 import Badge from './Badge.js';
+import { useTranslations } from 'next-intl';
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const t = useTranslations('Notifications');
 
   useEffect(() => {
     loadNotifications();
@@ -80,7 +82,7 @@ export default function Notifications() {
       <button
         onClick={() => setDropdownOpen(!dropdownOpen)}
         className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-        aria-label="Notifications"
+        aria-label={t('ariaLabel')}
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -100,21 +102,21 @@ export default function Notifications() {
           />
           <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 z-50 max-h-96 overflow-hidden flex flex-col">
             <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100">Notifications</h3>
+              <h3 className="font-semibold text-slate-900 dark:text-slate-100">{t('title')}</h3>
               {unreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
                   className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400"
                 >
-                  Mark all read
+                  {t('markAllRead')}
                 </button>
               )}
             </div>
             <div className="overflow-y-auto flex-1">
               {loading ? (
-                <div className="p-4 text-center text-slate-500">Loading...</div>
+                <div className="p-4 text-center text-slate-500">{t('loading')}</div>
               ) : notifications.length === 0 ? (
-                <div className="p-4 text-center text-slate-500">No notifications</div>
+                <div className="p-4 text-center text-slate-500">{t('noNotifications')}</div>
               ) : (
                 <div className="divide-y divide-slate-200 dark:divide-slate-700">
                   {notifications.map((notif) => (
@@ -162,7 +164,7 @@ export default function Notifications() {
                 className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400"
                 onClick={() => setDropdownOpen(false)}
               >
-                View all notifications
+                {t('viewAll')}
               </a>
             </div>
           </div>

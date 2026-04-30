@@ -26,10 +26,21 @@ const app = express();
 app.set('view engine', 'ejs');
 
 app.use(helmet());
-console.log('CORS allowed origin:', env.clientUrl);
+const allowedOrigins = [
+  env.clientUrl,
+  'http://localhost:3001',
+  'http://127.0.0.1:3001',
+  'http://192.168.1.55:3001',
+];
+console.log('CORS allowed origins:', allowedOrigins);
 app.use(
   cors({
-    origin: env.clientUrl,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, Postman)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error(`CORS blocked: ${origin}`));
+    },
     credentials: true,
   }),
 );

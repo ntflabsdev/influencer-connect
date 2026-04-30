@@ -1,16 +1,19 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://influencer-connect-ttvy.onrender.com';
-const ADMIN_API_BASE = `${API_BASE}/api/admin`;
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://192.168.1.55:5500api se co';
 
 export const getToken = () => (typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null);
+
 export const setTokens = (accessToken, refreshToken) => {
   if (typeof window === 'undefined') return;
   if (accessToken) localStorage.setItem('accessToken', accessToken);
   if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
 };
+
 export const clearTokens = () => {
   if (typeof window === 'undefined') return;
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
+  localStorage.removeItem('userRole');
+  localStorage.removeItem('userData');
 };
 
 export const apiFetch = async (path, options = {}) => {
@@ -20,31 +23,37 @@ export const apiFetch = async (path, options = {}) => {
   if (options.body && !(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
   }
-  const res = await fetch(`${API_BASE}${path}`, {
+  const url = `${API_BASE}${path}`;
+
+  const res = await fetch(url, {
     ...options,
     headers,
-    body: options.body && !(options.body instanceof FormData) ? JSON.stringify(options.body) : options.body,
+    body: options.body && !(options.body instanceof FormData)
+      ? JSON.stringify(options.body)
+      : options.body,
     cache: 'no-store',
   });
+
   if (!res.ok) {
     let msg = 'Request failed';
     try {
       const data = await res.json();
       msg = data.message || msg;
-    } catch (e) {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
     const error = new Error(msg);
     error.status = res.status;
     throw error;
   }
+
   const contentType = res.headers.get('content-type') || '';
   if (contentType.includes('application/json')) return res.json();
   return res.text();
 };
 
-// Alias for backward compatibility
+// Alias
 export const api = apiFetch;
 
-// Admin API function with /api/admin prefix
-export const adminApi = (path, options = {}) => apiFetch(`/api/admin${path}`, options);
+// Role-specific helpers
+export const adminApi    = (path, options = {}) => apiFetch(`/api/admin${path}`, options);
+export const influencerApi = (path, options = {}) => apiFetch(`/api/influencer${path}`, options);
+export const businessApi   = (path, options = {}) => apiFetch(`/api/business${path}`, options);

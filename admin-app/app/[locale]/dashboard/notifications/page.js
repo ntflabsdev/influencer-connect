@@ -1,283 +1,171 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { adminApi } from '../../../../lib/api.js';
-import Card from '../../../../components/Card.js';
-import Button from '../../../../components/Button.js';
-import Badge from '../../../../components/Badge.js';
+import { useState } from 'react';
 import { useToast } from '../../../../components/ToastProvider.js';
 
+const DUMMY_NOTIFS = [
+  { _id: 'n1', title: 'New Business Registration', message: 'Mamaearth has registered and is awaiting approval. Review their KYC documents.', type: 'user_pending_approval', priority: 'high', read: false, createdAt: '2026-06-11T10:30:00Z' },
+  { _id: 'n2', title: 'KYC Document Submitted', message: 'Rahul Verma submitted a PAN card for KYC verification. Pending review.', type: 'kyc_pending_review', priority: 'normal', read: false, createdAt: '2026-06-11T09:45:00Z' },
+  { _id: 'n3', title: 'Urgent: Account Suspension Appeal', message: 'Anjali Singh has appealed her account suspension. Review required within 24 hours.', type: 'dispute_created', priority: 'urgent', read: false, createdAt: '2026-06-11T08:00:00Z' },
+  { _id: 'n4', title: 'Content Flagged by AI', message: '3 new content submissions have been flagged by AI moderation with high risk scores. Review required.', type: 'content_pending_moderation', priority: 'high', read: false, createdAt: '2026-06-11T07:30:00Z' },
+  { _id: 'n5', title: 'Bulk Approval Complete', message: 'Bulk approval of 12 influencer accounts completed successfully by Admin Arjun.', type: 'bulk_action_complete', priority: 'normal', read: true, createdAt: '2026-06-10T16:00:00Z' },
+  { _id: 'n6', title: 'New Support Ticket', message: 'boAt Lifestyle reported a duplicate charge on their subscription. Ticket #T-007 assigned.', type: 'ticket_assigned', priority: 'high', read: false, createdAt: '2026-06-10T14:30:00Z' },
+  { _id: 'n7', title: 'Monthly Report Ready', message: 'The May 2026 platform analytics report has been generated and is ready for download.', type: 'report_ready', priority: 'low', read: true, createdAt: '2026-06-10T09:00:00Z' },
+  { _id: 'n8', title: 'New Dispute Filed', message: 'MakeMyTrip filed a dispute against an influencer for fake engagement metrics. Dispute #D-005.', type: 'dispute_created', priority: 'urgent', read: false, createdAt: '2026-06-11T08:00:00Z' },
+  { _id: 'n9', title: 'Influencer Pending Approval', message: '8 new influencer registrations are pending approval. Oldest is 3 days old.', type: 'user_pending_approval', priority: 'normal', read: true, createdAt: '2026-06-09T11:00:00Z' },
+  { _id: 'n10', title: 'Payment Hold Alert', message: 'A payment of ₹29,000 for campaign "Navratri Beauty Collection" has been on hold for 7 days.', type: 'ticket_assigned', priority: 'high', read: false, createdAt: '2026-06-09T08:30:00Z' },
+];
+
+const TYPE_ICONS = {
+  user_pending_approval: '👤',
+  kyc_pending_review: '🪪',
+  content_pending_moderation: '📝',
+  dispute_created: '⚖️',
+  ticket_assigned: '🎫',
+  bulk_action_complete: '✅',
+  report_ready: '📊',
+};
+
+const PRIORITY_MAP = {
+  urgent: { bg: '#fee2e2', color: '#dc2626', label: 'Urgent' },
+  high: { bg: '#fef3c7', color: '#d97706', label: 'High' },
+  normal: { bg: '#dbeafe', color: '#1e40af', label: 'Normal' },
+  low: { bg: '#f3f4f6', color: '#6b7280', label: 'Low' },
+};
+
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({
-    page: 1,
-    limit: 20,
-    read: '',
-    type: '',
-    priority: ''
-  });
-  const [pagination, setPagination] = useState(null);
+  const [notifs, setNotifs] = useState(DUMMY_NOTIFS);
+  const [filter, setFilter] = useState('all');
   const { push } = useToast();
 
-  useEffect(() => {
-    loadNotifications();
-  }, [filters]);
+  const unread = notifs.filter(n => !n.read).length;
 
-  const loadNotifications = async () => {
-    setLoading(true);
-    try {
-      const queryParams = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) queryParams.append(key, value);
-      });
+  const filtered = notifs.filter(n => {
+    if (filter === 'unread') return !n.read;
+    if (filter === 'read') return n.read;
+    return true;
+  });
 
-      const data = await adminApi(`/notifications?${queryParams.toString()}`);
-      setNotifications(data.notifications || []);
-      setUnreadCount(data.unreadCount || 0);
-      setPagination(data.pagination);
-    } catch (error) {
-      push('Failed to load notifications', 'error');
-    } finally {
-      setLoading(false);
-    }
+  const markRead = (id) => {
+    setNotifs(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
   };
 
-  const markAsRead = async (notificationId) => {
-    try {
-      await adminApi(`/notifications/${notificationId}/read`, { method: 'PATCH' });
-      setNotifications(prev => prev.map(n => 
-        n._id === notificationId ? { ...n, read: true, readAt: new Date() } : n
-      ));
-      setUnreadCount(prev => Math.max(0, prev - 1));
-      push('Notification marked as read', 'success');
-    } catch (error) {
-      push('Failed to mark notification as read', 'error');
-    }
+  const markAllRead = () => {
+    setNotifs(prev => prev.map(n => ({ ...n, read: true })));
+    push('All notifications marked as read', 'success');
   };
 
-  const markAllAsRead = async () => {
-    try {
-      await adminApi('/notifications/read-all', { method: 'PATCH' });
-      setNotifications(prev => prev.map(n => ({ ...n, read: true, readAt: new Date() })));
-      setUnreadCount(0);
-      push('All notifications marked as read', 'success');
-    } catch (error) {
-      push('Failed to mark all as read', 'error');
-    }
+  const deleteNotif = (id) => {
+    setNotifs(prev => prev.filter(n => n._id !== id));
+    push('Notification deleted', 'success');
   };
 
-  const deleteNotification = async (notificationId) => {
-    try {
-      await adminApi(`/notifications/${notificationId}`, { method: 'DELETE' });
-      setNotifications(prev => prev.filter(n => n._id !== notificationId));
-      push('Notification deleted', 'success');
-    } catch (error) {
-      push('Failed to delete notification', 'error');
-    }
-  };
-
-  const formatTime = (date) => {
-    const now = new Date();
-    const notifDate = new Date(date);
-    const diff = now - notifDate;
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
-    return notifDate.toLocaleDateString();
-  };
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'urgent': return 'danger';
-      case 'high': return 'warning';
-      default: return 'info';
-    }
+  const formatTime = (d) => {
+    const diff = new Date('2026-06-11T12:00:00Z') - new Date(d);
+    const mins = Math.floor(diff / 60000);
+    const hrs = Math.floor(mins / 60);
+    const days = Math.floor(hrs / 24);
+    if (mins < 60) return `${mins}m ago`;
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${days}d ago`;
   };
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Notifications</h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
-            {unreadCount > 0 ? `${unreadCount} unread notification(s)` : 'All caught up!'}
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827' }}>🔔 Notifications</h1>
+          <p style={{ fontSize: 13, color: '#6b7280', marginTop: 3 }}>
+            {unread > 0 ? `${unread} unread notification${unread > 1 ? 's' : ''}` : 'All caught up!'}
           </p>
         </div>
-        <div className="flex gap-3">
-          {unreadCount > 0 && (
-            <Button variant="secondary" onClick={markAllAsRead}>
-              Mark All Read
-            </Button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {unread > 0 && (
+            <button onClick={markAllRead}
+              style={{ padding: '8px 16px', borderRadius: 9, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              ✓ Mark All Read
+            </button>
           )}
-          <Button variant="secondary" onClick={loadNotifications} disabled={loading}>
-            {loading ? 'Refreshing...' : 'Refresh'}
-          </Button>
+          <button onClick={() => push('Refreshed', 'success')}
+            style={{ padding: '8px 16px', borderRadius: 9, border: 'none', background: '#4f46e5', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            🔄 Refresh
+          </button>
         </div>
       </div>
 
-      {/* Filters */}
-      <Card className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Status
-            </label>
-            <select
-              value={filters.read}
-              onChange={(e) => setFilters(prev => ({ ...prev, read: e.target.value, page: 1 }))}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-700"
-            >
-              <option value="">All</option>
-              <option value="false">Unread</option>
-              <option value="true">Read</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Type
-            </label>
-            <select
-              value={filters.type}
-              onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value, page: 1 }))}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-700"
-            >
-              <option value="">All Types</option>
-              <option value="user_pending_approval">User Pending Approval</option>
-              <option value="kyc_pending_review">KYC Pending Review</option>
-              <option value="content_pending_moderation">Content Pending Moderation</option>
-              <option value="dispute_created">Dispute Created</option>
-              <option value="ticket_assigned">Ticket Assigned</option>
-              <option value="bulk_action_complete">Bulk Action Complete</option>
-              <option value="report_ready">Report Ready</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Priority
-            </label>
-            <select
-              value={filters.priority}
-              onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value, page: 1 }))}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-700"
-            >
-              <option value="">All Priorities</option>
-              <option value="urgent">Urgent</option>
-              <option value="high">High</option>
-              <option value="normal">Normal</option>
-              <option value="low">Low</option>
-            </select>
-          </div>
-        </div>
-      </Card>
-
-      {/* Notifications List */}
-      <Card className="p-6">
-        {loading ? (
-          <div className="text-center py-8">Loading notifications...</div>
-        ) : notifications.length === 0 ? (
-          <div className="text-center py-8 text-slate-500 dark:text-slate-400">
-            No notifications found
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {notifications.map((notif) => (
-              <div
-                key={notif._id}
-                className={`border border-slate-200 dark:border-slate-700 rounded-lg p-4 transition-colors ${
-                  !notif.read ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-slate-900 dark:text-slate-100">
-                        {notif.title}
-                      </h3>
-                      {!notif.read && (
-                        <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                      )}
-                      {notif.priority && notif.priority !== 'normal' && (
-                        <Badge variant={getPriorityColor(notif.priority)} size="sm">
-                          {notif.priority}
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm mb-2">
-                      {notif.message}
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
-                      <span>{formatTime(notif.createdAt)}</span>
-                      {notif.type && (
-                        <Badge variant="secondary" size="sm">
-                          {notif.type.replace(/_/g, ' ')}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {!notif.read && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => markAsRead(notif._id)}
-                      >
-                        Mark Read
-                      </Button>
-                    )}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => deleteNotification(notif._id)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </div>
+      {/* Stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 14 }}>
+        {[
+          { label: 'Total', value: notifs.length, icon: '🔔', bg: '#e0f2fe', color: '#0ea5e9' },
+          { label: 'Unread', value: unread, icon: '🔵', bg: '#dbeafe', color: '#1e40af' },
+          { label: 'Urgent', value: notifs.filter(n => n.priority === 'urgent').length, icon: '🔴', bg: '#fee2e2', color: '#dc2626' },
+          { label: 'High Priority', value: notifs.filter(n => n.priority === 'high').length, icon: '🟠', bg: '#fef3c7', color: '#d97706' },
+        ].map(s => (
+          <div key={s.label} style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{s.icon}</div>
+              <div>
+                <p style={{ fontSize: 10, color: '#9ca3af', fontWeight: 500 }}>{s.label}</p>
+                <p style={{ fontSize: 20, fontWeight: 700, color: '#111827' }}>{s.value}</p>
               </div>
-            ))}
+            </div>
+          </div>
+        ))}
+      </div>
 
-            {/* Pagination */}
-            {pagination && pagination.pages > 1 && (
-              <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
-                <div className="text-sm text-slate-500 dark:text-slate-400">
-                  Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} notifications
+      {/* Filter */}
+      <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e5e7eb', padding: '14px 18px', display: 'flex', gap: 8 }}>
+        {['all', 'unread', 'read'].map(f => (
+          <button key={f} onClick={() => setFilter(f)}
+            style={{ padding: '7px 14px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 600, cursor: 'pointer', background: filter === f ? '#4f46e5' : '#f3f4f6', color: filter === f ? '#fff' : '#6b7280' }}>
+            {f.charAt(0).toUpperCase() + f.slice(1)}
+          </button>
+        ))}
+      </div>
+
+      {/* Notifications */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {filtered.map(n => {
+          const p = PRIORITY_MAP[n.priority];
+          return (
+            <div key={n._id} style={{ background: n.read ? '#fff' : '#f0f4ff', borderRadius: 14, border: n.read ? '1px solid #e5e7eb' : '1px solid #c7d2fe', padding: 18, display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: n.read ? '#f3f4f6' : '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
+                {TYPE_ICONS[n.type] || '🔔'}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                  <h3 style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{n.title}</h3>
+                  {!n.read && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#4f46e5', flexShrink: 0 }} />}
+                  {n.priority !== 'normal' && (
+                    <span style={{ background: p.bg, color: p.color, borderRadius: 20, padding: '2px 8px', fontSize: 10, fontWeight: 700 }}>{p.label}</span>
+                  )}
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    disabled={pagination.page <= 1}
-                    onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
-                  >
-                    Previous
-                  </Button>
-                  <span className="px-3 py-1 text-sm text-slate-700 dark:text-slate-300">
-                    Page {pagination.page} of {pagination.pages}
+                <p style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.5, marginBottom: 6 }}>{n.message}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 11, color: '#9ca3af' }}>{formatTime(n.createdAt)}</span>
+                  <span style={{ background: '#f3f4f6', color: '#374151', borderRadius: 6, padding: '2px 8px', fontSize: 10, fontWeight: 600 }}>
+                    {n.type.replace(/_/g, ' ')}
                   </span>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    disabled={pagination.page >= pagination.pages}
-                    onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
-                  >
-                    Next
-                  </Button>
                 </div>
               </div>
-            )}
-          </div>
-        )}
-      </Card>
+              <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                {!n.read && (
+                  <button onClick={() => markRead(n._id)}
+                    style={{ padding: '6px 12px', borderRadius: 7, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
+                    Mark Read
+                  </button>
+                )}
+                <button onClick={() => deleteNotif(n._id)}
+                  style={{ padding: '6px 10px', borderRadius: 7, border: 'none', background: '#fee2e2', color: '#dc2626', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
+                  🗑
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -6,6 +6,15 @@ import Card from '../../../../components/Card.js';
 import Button from '../../../../components/Button.js';
 import Badge from '../../../../components/Badge.js';
 import { useToast } from '../../../../components/ToastProvider.js';
+import { 
+  StatCard, 
+  GradientCard, 
+  GlassCard, 
+  ActivityItem, 
+  ProgressRing,
+  QuickAction,
+  ChartPlaceholder
+} from '../../../../components/DesignSystem.js';
 
 const predefinedFeatures = {
   influencer: [
@@ -134,8 +143,20 @@ const predefinedFeatures = {
 };
 
 export default function SubscriptionsPage() {
-  const [subscriptionPlans, setSubscriptionPlans] = useState([]);
-  const [customPlans, setCustomPlans] = useState([]);
+  const DUMMY_PLANS = [
+    { _id: 'sp1', name: 'Free Creator', description: 'Best for: New / nano influencers', price: 0, currency: 'EUR', interval: 'month', features: ['Apply to 5 offers/month'] },
+    { _id: 'sp2', name: 'Creator Plus', description: 'Best for: Active micro influencers', price: 9.99, currency: 'EUR', interval: 'month', features: ['Unlimited offers', 'Priority visibility', 'Advanced portfolio', 'Full chat access'] },
+    { _id: 'sp3', name: 'Creator Pro', description: 'Best for: Full-time creators', price: 19.99, currency: 'EUR', interval: 'month', features: ['All Plus features', 'Featured badge', 'AI matching', 'Priority support'] },
+    { _id: 'sp4', name: 'Free Business', description: 'Best for: First-time businesses', price: 0, currency: 'EUR', interval: 'month', features: ['Post 5 offers/month'] },
+    { _id: 'sp5', name: 'Business Basic', description: 'Best for: Small cafés, gyms, salons', price: 29, currency: 'EUR', interval: 'month', features: ['Unlimited offers', 'Advanced filters', 'Influencer portfolios', 'Basic analytics'] },
+    { _id: 'sp6', name: 'Business Pro', description: 'Best for: Growing brands & chains', price: 79, currency: 'EUR', interval: 'month', features: ['All Basic features', 'Featured offers', 'AI recommendations', 'Campaign analytics', 'Dedicated support'] },
+  ];
+  const DUMMY_CUSTOM = [
+    { _id: 'cp1', name: 'Enterprise Plan - TechBrand', description: 'Custom enterprise plan', price: 299, currency: 'EUR', interval: 'month', features: ['Unlimited everything', 'Dedicated account manager', 'Custom integrations'], businessId: 'b1' },
+  ];
+
+  const [subscriptionPlans, setSubscriptionPlans] = useState(DUMMY_PLANS);
+  const [customPlans, setCustomPlans] = useState(DUMMY_CUSTOM);
   const [loading, setLoading] = useState(false);
   const [creatingPlan, setCreatingPlan] = useState(false);
   const [planForm, setPlanForm] = useState({
@@ -171,11 +192,10 @@ export default function SubscriptionsPage() {
     try {
       const mainPlans = await apiFetch('/api/admin/subscription-plans');
       setSubscriptionPlans(mainPlans.plans || []);
-
       const customData = await apiFetch('/api/admin/subscription-plans/custom');
       setCustomPlans(customData.plans || []);
-    } catch (err) {
-      push('Failed to load subscription plans', 'error');
+    } catch {
+      // Keep dummy plans on API failure
     } finally {
       setLoading(false);
     }
@@ -325,200 +345,262 @@ export default function SubscriptionsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-8">
+      {/* ── Header ── */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Subscription Management</h1>
-          <p className="text-slate-600 dark:text-slate-400">Create and manage subscription plans</p>
+          <h1 className="text-3xl font-bold text-gray-900">💎 Subscription Management</h1>
+          <p className="text-gray-600 mt-1">Create and manage subscription plans</p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={loadSubscriptionPlans}
+            disabled={loading}
+            className="px-4 py-2 border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            {loading ? '🔄 Refreshing...' : '🔄 Refresh'}
+          </button>
         </div>
       </div>
 
-      {/* Quick Create Plans */}
+      {/* ── Subscription Stats ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard
+          title="Active Plans"
+          value={subscriptionPlans.length + customPlans.length}
+          subtitle="Total available"
+          icon="📋"
+          accent="#4f46e5"
+          accentBg="#eef2ff"
+        />
+        <StatCard
+          title="Free Plans"
+          value="2"
+          subtitle="No cost plans"
+          icon="🆓"
+          accent="#10b981"
+          accentBg="#d1fae5"
+        />
+        <StatCard
+          title="Premium Plans"
+          value="4"
+          subtitle="Paid subscriptions"
+          icon="💎"
+          accent="#f59e0b"
+          accentBg="#fef3c7"
+        />
+        <StatCard
+          title="Custom Plans"
+          value={customPlans.length}
+          subtitle="User specific"
+          icon="🎯"
+          accent="#8b5cf6"
+          accentBg="#f3f4f6"
+        />
+      </div>
+
+      {/* ── Quick Create Plans ── */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Influencer Plans */}
-        <Card className="space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">👤</span>
-            <h3 className="text-lg font-semibold">Influencer Plans</h3>
+        <GradientCard className="p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="text-3xl">👤</span>
+            <h3 className="text-xl font-semibold text-white">Influencer Plans</h3>
           </div>
 
           <div className="space-y-4">
             {/* Free Creator */}
-            <div className="border rounded-lg p-4 bg-green-50 dark:bg-green-500/10">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold text-green-800 dark:text-green-200">🆓 Free Creator</h4>
-                <span className="text-sm text-green-600 dark:text-green-400 font-medium">Free</span>
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-white">🆓 Free Creator</h4>
+                <span className="px-3 py-1 bg-green-500/20 text-green-300 rounded-lg text-sm font-medium">Free</span>
               </div>
-              <p className="text-sm text-green-700 dark:text-green-300 mb-3">Best for: New / nano influencers</p>
-              <Button
+              <p className="text-white/80 text-sm mb-4">Best for: New / nano influencers</p>
+              <button
                 onClick={() => createPredefinedPlan('influencer', 'free')}
-                className="w-full"
+                className="w-full px-4 py-3 bg-white/20 hover:bg-white/30 text-white rounded-xl transition-all font-medium"
                 disabled={creatingPlan}
               >
-                {creatingPlan ? 'Creating...' : 'Create Free Plan'}
-              </Button>
+                {creatingPlan ? 'Creating...' : '✨ Create Free Plan'}
+              </button>
             </div>
 
             {/* Creator Plus */}
-            <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-500/10">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold text-blue-800 dark:text-blue-200">⭐ Creator Plus</h4>
-                <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">€9.99/month</span>
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-white">⭐ Creator Plus</h4>
+                <span className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-lg text-sm font-medium">€9.99/month</span>
               </div>
-              <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">Best for: Active micro influencers</p>
-              <Button
+              <p className="text-white/80 text-sm mb-4">Best for: Active micro influencers</p>
+              <button
                 onClick={() => createPredefinedPlan('influencer', 'plus')}
-                className="w-full"
+                className="w-full px-4 py-3 bg-white/20 hover:bg-white/30 text-white rounded-xl transition-all font-medium"
                 disabled={creatingPlan}
               >
-                {creatingPlan ? 'Creating...' : 'Create Plus Plan'}
-              </Button>
+                {creatingPlan ? 'Creating...' : '✨ Create Plus Plan'}
+              </button>
             </div>
 
             {/* Creator Pro */}
-            <div className="border rounded-lg p-4 bg-purple-50 dark:bg-purple-500/10">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold text-purple-800 dark:text-purple-200">🚀 Creator Pro</h4>
-                <span className="text-sm text-purple-600 dark:text-purple-400 font-medium">€19.99/month</span>
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-white">🚀 Creator Pro</h4>
+                <span className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-lg text-sm font-medium">€19.99/month</span>
               </div>
-              <p className="text-sm text-purple-700 dark:text-purple-300 mb-3">Best for: Full-time creators</p>
-              <Button
+              <p className="text-white/80 text-sm mb-4">Best for: Full-time creators</p>
+              <button
                 onClick={() => createPredefinedPlan('influencer', 'pro')}
-                className="w-full"
+                className="w-full px-4 py-3 bg-white/20 hover:bg-white/30 text-white rounded-xl transition-all font-medium"
                 disabled={creatingPlan}
               >
-                {creatingPlan ? 'Creating...' : 'Create Pro Plan'}
-              </Button>
+                {creatingPlan ? 'Creating...' : '✨ Create Pro Plan'}
+              </button>
             </div>
           </div>
-        </Card>
+        </GradientCard>
 
         {/* Business Plans */}
-        <Card className="space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🏪</span>
-            <h3 className="text-lg font-semibold">Business Plans</h3>
+        <GradientCard className="p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="text-3xl">🏪</span>
+            <h3 className="text-xl font-semibold text-white">Business Plans</h3>
           </div>
 
           <div className="space-y-4">
             {/* Free Business */}
-            <div className="border rounded-lg p-4 bg-green-50 dark:bg-green-500/10">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold text-green-800 dark:text-green-200">🆓 Free Business</h4>
-                <span className="text-sm text-green-600 dark:text-green-400 font-medium">Free</span>
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-white">🆓 Free Business</h4>
+                <span className="px-3 py-1 bg-green-500/20 text-green-300 rounded-lg text-sm font-medium">Free</span>
               </div>
-              <p className="text-sm text-green-700 dark:text-green-300 mb-3">Best for: First-time businesses</p>
-              <Button
+              <p className="text-white/80 text-sm mb-4">Best for: First-time businesses</p>
+              <button
                 onClick={() => createPredefinedPlan('business', 'free')}
-                className="w-full"
+                className="w-full px-4 py-3 bg-white/20 hover:bg-white/30 text-white rounded-xl transition-all font-medium"
                 disabled={creatingPlan}
               >
-                {creatingPlan ? 'Creating...' : 'Create Free Plan'}
-              </Button>
+                {creatingPlan ? 'Creating...' : '✨ Create Free Plan'}
+              </button>
             </div>
 
             {/* Business Basic */}
-            <div className="border rounded-lg p-4 bg-blue-50 dark:bg-blue-500/10">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold text-blue-800 dark:text-blue-200">⭐ Business Basic</h4>
-                <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">€29/month</span>
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-white">⭐ Business Basic</h4>
+                <span className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-lg text-sm font-medium">€29/month</span>
               </div>
-              <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">Best for: Small cafés, gyms, salons</p>
-              <Button
+              <p className="text-white/80 text-sm mb-4">Best for: Small cafés, gyms, salons</p>
+              <button
                 onClick={() => createPredefinedPlan('business', 'basic')}
-                className="w-full"
+                className="w-full px-4 py-3 bg-white/20 hover:bg-white/30 text-white rounded-xl transition-all font-medium"
                 disabled={creatingPlan}
               >
-                {creatingPlan ? 'Creating...' : 'Create Basic Plan'}
-              </Button>
+                {creatingPlan ? 'Creating...' : '✨ Create Basic Plan'}
+              </button>
             </div>
 
             {/* Business Pro */}
-            <div className="border rounded-lg p-4 bg-purple-50 dark:bg-purple-500/10">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold text-purple-800 dark:text-purple-200">🚀 Business Pro</h4>
-                <span className="text-sm text-purple-600 dark:text-purple-400 font-medium">€79/month</span>
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-white">🚀 Business Pro</h4>
+                <span className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-lg text-sm font-medium">€79/month</span>
               </div>
-              <p className="text-sm text-purple-700 dark:text-purple-300 mb-3">Best for: Growing brands & chains</p>
-              <Button
+              <p className="text-white/80 text-sm mb-4">Best for: Growing brands & chains</p>
+              <button
                 onClick={() => createPredefinedPlan('business', 'pro')}
-                className="w-full"
+                className="w-full px-4 py-3 bg-white/20 hover:bg-white/30 text-white rounded-xl transition-all font-medium"
                 disabled={creatingPlan}
               >
-                {creatingPlan ? 'Creating...' : 'Create Pro Plan'}
-              </Button>
+                {creatingPlan ? 'Creating...' : '✨ Create Pro Plan'}
+              </button>
             </div>
           </div>
-        </Card>
+        </GradientCard>
       </div>
 
-      {/* Existing Plans Display */}
-      <div className="grid gap-6 md:grid-cols-2">
+      {/* ── Existing Plans Display ── */}
+      <div className="grid gap-6 lg:grid-cols-2">
         {/* Main Plans */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <span className="text-indigo-600">📋</span>
+          <h3 className="text-xl font-semibold flex items-center gap-3">
+            <span className="text-2xl">📋</span>
             Main Subscription Plans
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {subscriptionPlans.map((plan) => (
-              <Card key={plan._id} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-indigo-800 dark:text-indigo-200">{plan.name}</h4>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold text-indigo-600">
+              <div key={plan._id} className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition-all">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="font-semibold text-gray-900 text-lg">{plan.name}</h4>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl font-bold text-indigo-600">
                       {plan.currency === 'EUR' ? '€' : plan.currency === 'USD' ? '$' : '£'}{plan.price}
-                      {plan.price > 0 && <span className="text-sm font-normal text-slate-500">/{plan.interval}</span>}
+                      {plan.price > 0 && <span className="text-sm font-normal text-gray-500">/{plan.interval}</span>}
                     </span>
-                    <Badge>Main</Badge>
+                    <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-medium">Main</span>
                   </div>
                 </div>
-                <p className="text-sm text-slate-600 dark:text-slate-400">{plan.description}</p>
-                <div className="text-xs text-slate-500">
-                  {plan.features?.length || 0} features included
+                <p className="text-gray-600 mb-4">{plan.description}</p>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-500">
+                    💎 {plan.features?.length || 0} features included
+                  </div>
+                  <button onClick={() => push(`${plan.name}: ${plan.features?.join(', ') || 'No features listed'}`, 'info')} className="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+                    View Details →
+                  </button>
                 </div>
-              </Card>
+              </div>
             ))}
             {subscriptionPlans.length === 0 && (
-              <Card className="border-dashed">
-                <p className="text-center text-slate-500 py-8">No main subscription plans created yet.</p>
-              </Card>
+              <div className="bg-white rounded-2xl border-2 border-dashed border-gray-300 p-8">
+                <div className="text-center">
+                  <div className="text-4xl mb-3">📋</div>
+                  <p className="text-gray-500">No main subscription plans created yet.</p>
+                </div>
+              </div>
             )}
           </div>
         </div>
 
         {/* Custom Plans */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <span className="text-amber-600">🎯</span>
+          <h3 className="text-xl font-semibold flex items-center gap-3">
+            <span className="text-2xl">🎯</span>
             Custom Business Plans
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {customPlans.map((plan) => (
-              <Card key={plan._id} className="space-y-3 border-amber-200 dark:border-amber-500/30">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-amber-800 dark:text-amber-200">{plan.name}</h4>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold text-amber-600">
+              <div key={plan._id} className="bg-white rounded-2xl border border-amber-200 p-6 hover:shadow-md transition-all">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="font-semibold text-gray-900 text-lg">{plan.name}</h4>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl font-bold text-amber-600">
                       {plan.currency === 'EUR' ? '€' : plan.currency === 'USD' ? '$' : '£'}{plan.price}
-                      {plan.price > 0 && <span className="text-sm font-normal text-slate-500">/{plan.interval}</span>}
+                      {plan.price > 0 && <span className="text-sm font-normal text-gray-500">/{plan.interval}</span>}
                     </span>
-                    <Badge variant="secondary">Custom</Badge>
+                    <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-lg text-xs font-medium">Custom</span>
                   </div>
                 </div>
-                <p className="text-sm text-slate-600 dark:text-slate-400">{plan.description}</p>
-                <p className="text-xs text-slate-500 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 rounded">
-                  {plan.businessId || plan.userId ? 'Business' : 'Influencer'} ID: {plan.businessId || plan.userId || 'N/A'}
-                </p>
-                <div className="text-xs text-slate-500">
-                  {plan.features?.length || 0} features included
+                <p className="text-gray-600 mb-3">{plan.description}</p>
+                <div className="bg-amber-50 text-amber-700 px-3 py-2 rounded-lg text-sm mb-3">
+                  🏢 {plan.businessId || plan.userId ? 'Business' : 'Influencer'} ID: {plan.businessId || plan.userId || 'N/A'}
                 </div>
-              </Card>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-500">
+                    💎 {plan.features?.length || 0} features included
+                  </div>
+                  <button onClick={() => push(`${plan.name}: ${plan.features?.join(', ') || 'No features listed'}`, 'info')} className="text-amber-600 hover:text-amber-700 text-sm font-medium">
+                    View Details →
+                  </button>
+                </div>
+              </div>
             ))}
             {customPlans.length === 0 && (
-              <Card className="border-dashed border-amber-200 dark:border-amber-500/30">
-                <p className="text-center text-slate-500 py-8">No custom plans created yet.</p>
-              </Card>
+              <div className="bg-white rounded-2xl border-2 border-dashed border-amber-200 p-8">
+                <div className="text-center">
+                  <div className="text-4xl mb-3">🎯</div>
+                  <p className="text-gray-500">No custom plans created yet.</p>
+                </div>
+              </div>
             )}
           </div>
         </div>

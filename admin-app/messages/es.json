@@ -31,6 +31,23 @@
         "cancel": "Cancelar",
         "showingDataFor": "Mostrando"
     },
+    "Sidebar": {
+        "groups": {
+            "overview": "Resumen",
+            "users": "Usuarios",
+            "operations": "Operaciones",
+            "finance": "Finanzas",
+            "system": "Sistema"
+        }
+    },
+    "Notifications": {
+        "title": "Notificaciones",
+        "ariaLabel": "Notificaciones",
+        "markAllRead": "Marcar todo como leído",
+        "loading": "Cargando...",
+        "noNotifications": "Sin notificaciones",
+        "viewAll": "Ver todas las notificaciones"
+    },
     "Dashboard": {
         "title": "Panel de Administración",
         "stats": "Estadísticas"
@@ -68,6 +85,32 @@
         "totalCount": "Cantidad Total",
         "dailyTrend": "Solicitudes Diarias (Últimos 14 Días)",
         "noDailyData": "No hay datos diarios disponibles",
+        "stats": {
+            "totalRevenue": "Ingresos Totales",
+            "thisMonth": "Este mes",
+            "activeOffers": "Ofertas Activas",
+            "liveCampaigns": "Campañas Activas",
+            "applications": "Solicitudes",
+            "successRate": "Tasa de Éxito",
+            "averageSuccess": "Éxito promedio",
+            "approvalRate": "Tasa de Aprobación"
+        },
+        "performance": {
+            "title": "Resumen de Rendimiento",
+            "conversionRate": "Tasa de Conversión",
+            "avgOrderValue": "Valor Promedio del Pedido",
+            "campaignROI": "ROI de Campaña"
+        },
+        "charts": {
+            "revenueTrend": "Tendencia de Ingresos",
+            "userGrowth": "Crecimiento de Usuarios"
+        },
+        "actions": {
+            "exportReport": "Exportar Informe",
+            "emailSummary": "Enviar Resumen por Correo",
+            "refreshData": "Actualizar Datos",
+            "settings": "Ajustes"
+        },
         "unknown": "Desconocido",
         "totalBusinesses": "Total de Empresas",
         "activeBusinesses": "Empresas Activas",
@@ -295,15 +338,56 @@
         "noLogs": "No se encontraron registros de actividad",
         "target": "Objetivo"
     },
+    "ContentModeration": {
+        "title": "Moderación de Contenido",
+        "subtitle": "Revisión de contenido impulsada por IA y control de calidad",
+        "moderationStatus": "Estado de Moderación de Contenido",
+        "tabs": {
+            "pending": "Pendiente de Revisión",
+            "flagged": "Marcado por IA",
+            "analytics": "Analítica de Calidad"
+        },
+        "stats": {
+            "pendingReview": "Pendiente de Revisión",
+            "awaitingApproval": "Esperando aprobación",
+            "aiFlagged": "Marcado por IA",
+            "highRiskContent": "Contenido de alto riesgo",
+            "approvedToday": "Aprobados Hoy",
+            "successfullyApproved": "Aprobados exitosamente",
+            "qualityScore": "Puntuación de Calidad",
+            "averageQualityRating": "Calificación de calidad promedio"
+        },
+        "noAnalyticsText": "La analítica de calidad aparecerá una vez que las presentaciones de contenido sean procesadas."
+    },
     "Reports": {
         "title": "Informes",
         "subtitle": "Generar y exportar informes de la plataforma",
-        "type": "Tipo de informe",
-        "userReport": "Informe de usuario",
-        "activityReport": "Informe de actividad",
+        "type": "Tipo de Informe",
+        "userReport": "Informe de Usuario",
+        "activityReport": "Informe de Actividad",
         "generating": "Generando...",
-        "generateJSON": "Generar informe JSON",
-        "generateCSV": "Generar y descargar CSV",
+        "generateJSON": "Generar Informe JSON",
+        "generateCSV": "Generar y Descargar CSV",
+        "stats": {
+            "reportsGenerated": "Informes Generados",
+            "thisMonth": "Este mes",
+            "userActivity": "Actividad de Usuario",
+            "last7Days": "Últimos 7 días",
+            "systemHealth": "Salud del Sistema",
+            "performanceScore": "Puntuación de rendimiento",
+            "dataExported": "Datos Exportados",
+            "totalExports": "Exportaciones totales"
+        },
+        "actions": {
+            "generateJSON": "Generar JSON",
+            "exportCSV": "Exportar CSV",
+            "emailReport": "Enviar Informe por Correo",
+            "settings": "Ajustes"
+        },
+        "charts": {
+            "reportTrends": "Tendencias de Generación de Informes"
+        },
+        "recentReports": "Informes Recientes",
         "toasts": {
             "count": "Informe generado con {count} registros"
         }
@@ -393,24 +477,6 @@
         "departments": {
             "operations": "Operaciones",
             "finance": "Finanzas",
-            "support": "Soporte",
-            "moderation": "Moderación",
-            "management": "Gestión",
-            "selectDepartment": "Seleccionar departamento"
-        },
-        "table": {
-            "joined": "Se unió",
-            "edit": "Editar",
-            "deactivate": "Desactivar",
-            "inactive": "INACTIVO",
-            "loading": "Cargando administradores...",
-            "noAdmins": "No se encontraron administradores"
-        },
-        "modals": {
-            "createTitle": "Crear nuevo administrador",
-            "editTitle": "Editar administrador",
-            "fullName": "Nombre completo",
-            "email": "Correo electrónico",
             "password": "Contraseña",
             "role": "Rol",
             "department": "Departamento",
@@ -455,6 +521,16 @@
         }
     },
     "Login": {
+        "brand": {
+            "name": "Influencer Connect",
+            "description": "Gestiona tu plataforma de influencers con control total e insights en tiempo real."
+        },
+        "features": {
+            "analytics": "Panel de analítica en tiempo real",
+            "management": "Gestiona influencers y empresas",
+            "security": "Control de acceso seguro de administrador"
+        },
+        "welcome": "Bienvenido de nuevo",
         "title": "Acceso al Panel de Administración",
         "subtext": "Acceso seguro para gestionar tu plataforma",
         "emailLabel": "Dirección de Correo",

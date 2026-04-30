@@ -8,7 +8,8 @@ export const metadata = {
     description: 'Admin panel for Influencer Connect',
 };
 
-export default async function LocaleLayout({ children, params: { locale } }) {
+export default async function LocaleLayout({ children, params }) {
+    const { locale } = await params;
     const messages = await getMessages();
 
     return (
